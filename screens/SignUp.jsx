@@ -103,7 +103,8 @@ export default function SignupScreen({navigation}) {
             <FontAwesome name="facebook" size={18} color="#1877F2" />
             <Text style={styles.socialText}> Sign up with Facebook</Text>
           </TouchableOpacity>
-        </View>
+          
+            </View>
       </View>
     </SafeAreaView>
   );

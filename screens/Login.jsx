@@ -54,9 +54,20 @@ export default function LoginScreen({navigation}) {
         </TouchableOpacity>
 
         {/* Login Button */}
-        <TouchableOpacity style={styles.loginButton}>
-          <Text style={styles.loginText}>Login</Text>
-        </TouchableOpacity>
+       <TouchableOpacity
+        style={styles.loginButton}
+        onPress={() => navigation.replace("Main")}
+      >
+        <Text style={styles.loginText}>Login</Text>
+      </TouchableOpacity>
+     {/* for hospital staff */}
+      <TouchableOpacity 
+        style={styles.staffLink} 
+        onPress={() => navigation.navigate('StaffDashboard')}
+      >
+        <Text style={styles.staffText}>Hospital Staff? <Text style={styles.bold}>Access Portal</Text></Text>
+      </TouchableOpacity>
+      
 
         {/* Sign up */}
         <Text style={styles.signupText}>
@@ -167,4 +178,21 @@ const styles = StyleSheet.create({
   socialText: {
     fontSize: 14,
   },
+  staffLink: {
+    marginTop: 40,
+    padding: 10,
+    alignSelf: 'center',
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 10,
+    borderStyle: 'dashed',
+  },
+  staffText: {
+    color: '#666',
+    fontSize: 13,
+  },
+  bold: {
+    fontWeight: 'bold',
+    color: '#4A90E2',
+  }
 });
