@@ -1,5 +1,6 @@
 {
   "expo": {
+    "scheme": "fastaidapp",
     "name": "AmbulanceHospitalSystem",
     "slug": "AmbulanceHospitalSystem",
     "version": "1.0.0",
@@ -8,22 +9,25 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/FastAid-Logo (2).png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#2d857c"
     },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/FastAid-Logo (2).png",
+        "backgroundColor": "#2d857c"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }
