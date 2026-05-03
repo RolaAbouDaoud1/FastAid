@@ -85,8 +85,8 @@ const Home = () => {
             <View key={h.id} style={styles.hospitalCard}>
               <Image source={{ uri: h.img }} style={styles.hospitalImg} />
               <View style={styles.cardInfo}>
-                <Text style={styles.cardTitle} numberOfLines={1}>{h.name}</Text>
-                <View style={styles.distRow}><MapPin size={12} color="#E63946" /><Text style={styles.distText}>{h.dist} away</Text></View>
+                <Text style={styles.cardTitle} numberOfLines={1}>  {h.name}</Text>
+                <View style={styles.distRow}><MapPin size={12} color="#E63946" marginLeft={10} marginBottom={5} /><Text style={styles.distText}>{h.dist} away</Text></View>
               </View>
             </View>
           ))}
@@ -152,16 +152,63 @@ const SeeMoreCard = ({ onPress }) => (
 
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
-  scrollContent: { paddingBottom: 100 },
-  header: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 15, paddingBottom: 10, alignItems: 'center' },
-  notificationBadge: { position: 'absolute', top: 5, right: 5, backgroundColor: '#E63946', width: 9, height: 9, borderRadius: 5, zIndex: 2, borderWidth: 1.5, borderColor: '#F8FAFC' },
-  heroCard: { backgroundColor: '#FFF', margin: 16, padding: 24, borderRadius: 24, flexDirection: 'row', alignItems: 'center', elevation: 4 },
-  heroTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  heroSubtitle: { fontSize: 13, color: '#777', marginTop: 6 },
-  starIcon: { fontSize: 36, color: '#E63946', marginLeft: 15 },
-  searchContainer: { backgroundColor: '#FFF', marginHorizontal: 16, borderRadius: 16, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, height: 54, elevation: 2 },
-  searchInput: { flex: 1, marginLeft: 12, fontSize: 15 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC' 
+  },
+  scrollContent: {
+    paddingBottom: 100 },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 25,
+    alignItems: 'center' },
+  notificationBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: '#E63946',
+    width: 9,
+    height: 9,
+    borderRadius: 5, 
+    zIndex: 2, 
+    borderWidth: 1.5, 
+    borderColor: '#F8FAFC' },
+  heroCard: { 
+    backgroundColor: '#FFF',
+    margin: 16,
+    padding: 24,
+    borderRadius: 24, 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    elevation: 4 },
+  heroTitle: { 
+    fontSize: 20,
+     fontWeight: 'bold',
+      color: '#333' },
+  heroSubtitle: { 
+    fontSize: 13,
+     color: '#777', 
+     marginTop: 6 },
+  starIcon: { 
+    fontSize: 36,
+     color: '#E63946', 
+     marginLeft: 10 },
+  searchContainer: { 
+    backgroundColor: '#FFF',
+     marginHorizontal: 16,
+      borderRadius: 16, 
+      flexDirection: 'row',
+       alignItems: 'center',
+        paddingHorizontal: 16,
+         height: 54, 
+         elevation: 2 },
+  searchInput: {
+     flex: 1, 
+    marginLeft: 12, 
+    fontSize: 15 },
   categoryGrid: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 20 },
   catItem: { width: '22%', alignItems: 'center' },
   catIconWrapper: { backgroundColor: '#FFF', padding: 14, borderRadius: 18, elevation: 3 },

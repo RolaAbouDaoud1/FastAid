@@ -16,7 +16,8 @@ import PharmacyScreen from './screens/PharmacyScreen';
 import AppointmentsScreen from './screens/AppointmentsScreen';
 import Login from './screens/Login';
 import SignUp from './screens/SignUp';
-import StaffDashboard from './screens/StaffDashboard'; // New Screen
+import StaffDashboard from './screens/StaffDashboard';
+import AmbulanceStaffScreen from './screens/AmbulanceStaffScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -29,28 +30,44 @@ function MainTabs() {
         headerShown: false,
         tabBarIcon: ({ color, size }) => {
           let icon;
-          if (route.name === 'Home') icon = <HomeIcon color={color} size={size} />;
-          else if (route.name === 'Hospitals') icon = <Hospital color={color} size={size} />;
-          else if (route.name === 'AI') icon = <MessageCircle color={color} size={size} />;
-          else if (route.name === 'Emergency') icon = <AlertCircle color={color} size={size} />;
+
+          if (route.name === 'Home')
+            icon = <HomeIcon color={color} size={size} />;
+
+          else if (route.name === 'Hospitals')
+            icon = <Hospital color={color} size={size} />;
+
+          else if (route.name === 'AI')
+            icon = <MessageCircle color={color} size={size} />;
+
+          else if (route.name === 'Emergency')
+            icon = <AlertCircle color={color} size={size} />;
+
+          else if (route.name === 'Ambulance')
+            icon = <AlertCircle color="#E63946" size={size} />;
+
           return icon;
         },
+
         tabBarActiveTintColor: '#2D6A4F',
         tabBarInactiveTintColor: '#999',
-        tabBarStyle: { 
-          height: 75, 
-          paddingBottom: 12, 
+        tabBarStyle: {
+          height: 75,
+          paddingBottom: 12,
           backgroundColor: '#FFF',
           borderTopWidth: 1,
           borderTopColor: '#EEE',
-          elevation: 5
+          elevation: 5,
         },
       })}
     >
+
       <Tab.Screen name="Home" component={Home} />
       <Tab.Screen name="Hospitals" component={HospitalsScreen} />
       <Tab.Screen name="AI" component={AIHelpScreen} />
       <Tab.Screen name="Emergency" component={EmergencyScreen} />
+      <Tab.Screen name="Ambulance" component={AmbulanceStaffScreen} />
+
     </Tab.Navigator>
   );
 }
@@ -70,6 +87,8 @@ export default function App() {
         <Stack.Screen name="DoctorsList" component={DoctorsScreen} />
         <Stack.Screen name="Pharmacy" component={PharmacyScreen} />
         <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+        <Stack.Screen name="AIHelpScreen" component={AIHelpScreen} />
+        <Stack.Screen name="AmbulanceStaffScreen" component={AmbulanceStaffScreen} />
         
         {/* Staff Management Page */}
         <Stack.Screen name="StaffDashboard" component={StaffDashboard} />

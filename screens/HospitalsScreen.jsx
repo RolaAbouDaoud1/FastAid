@@ -43,7 +43,7 @@ const HospitalsScreen = () => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
-  headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
+  headerTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, marginTop: 40 },
   searchBar: { flexDirection: 'row', backgroundColor: '#FFF', padding: 12, borderRadius: 12, alignItems: 'center', marginBottom: 20, elevation: 2 },
   input: { flex: 1, marginLeft: 10 },
   card: { backgroundColor: '#FFF', borderRadius: 15, marginBottom: 15, overflow: 'hidden', elevation: 2 },

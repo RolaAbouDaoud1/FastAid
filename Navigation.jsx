@@ -6,6 +6,7 @@ import { FontAwesome5 } from "@expo/vector-icons";
 import Home from "./screens/Home";
 import HospitalDashboard from "./screens/HospitalDashboard";
 import DoctorsScreen from "./screens/DoctorsScreen";
+import AmbulanceStaffScreen from "./screens/AmbulanceStaffScreen";
 
 const Tab = createBottomTabNavigator();
 
@@ -43,6 +44,15 @@ export default function Navigation() {
             ),
           }}
         />
+        <Tab.Screen
+          name="Ambulance"
+          component={AmbulanceStaffScreen}
+          options={{
+            tabBarIcon: ({ color, size }) => (
+              <FontAwesome5 name="ambulance" size={size} color={color} />
+            ),
+  }}
+/>
 
       </Tab.Navigator>
     </NavigationContainer>
