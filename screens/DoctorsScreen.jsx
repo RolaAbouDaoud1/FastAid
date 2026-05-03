@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, FlatList, Image, TouchableOpacity, TextInput, S
 import { Search, ChevronLeft, Phone, Calendar } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 
+
 const DoctorsScreen = () => {
   const navigation = useNavigation();
   const [search, setSearch] = useState('');
@@ -49,7 +50,7 @@ const DoctorsScreen = () => {
                 <TouchableOpacity style={styles.callBtn}><Phone color="#FFF" size={14} /></TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.bookBtn} 
-                  onPress={() => navigation.navigate('AppointmentsScreen')}
+                  
                 >
                   <Calendar color="#2D6A4F" size={14} />
                   <Text style={styles.bookText}>Book</Text>

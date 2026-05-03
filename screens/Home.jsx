@@ -6,13 +6,13 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { 
   Search, Bell, Hospital as HospitalIcon, MapPin, 
-  Star, Plus, BriefcaseMedical, MessageCircle, AlertCircle, Home as HomeIcon 
+  Star, Plus, BriefcaseMedical, MessageCircle, AlertCircle 
 } from 'lucide-react-native';
 
 const Home = () => {
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('Home');
+  // const [activeTab, setActiveTab] = useState('Home');
 
   // Data Arrays
   const hospitals = [
