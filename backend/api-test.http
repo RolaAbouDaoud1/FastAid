@@ -1,0 +1,45 @@
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "full_name": "Test User",
+  "email": "test@test.com",
+  "password": "123456",
+  "role": "visitor"
+}
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "full_name": "Hajar roro",
+  "email": "joo@rola.com",
+  "password": "001188",
+  "role": "visitor"
+}
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "123456"
+}
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@test.com",
+  "password": "123456"
+}
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "full_name": "Ali ali",
+  "email": "ali@a.com",
+  "password": "001158",
+  "role": "visitor"
+}
