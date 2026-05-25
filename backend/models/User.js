@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
     },
 
     password: {
@@ -20,20 +21,19 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["visitor", "ambulance_staff", "hospital"],
+      enum: ["visitor", "ambulance_staff", "hospital", "admin"],
       default: "visitor",
     },
 
+    // Ambulance staff only
     car_nb: {
       type: String,
     },
 
-    location_lat: {
-      type: String,
-    },
-
-    location_long: {
-      type: String,
+    // Hospital account reference
+    hospital: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Hospital",
     },
   },
   {

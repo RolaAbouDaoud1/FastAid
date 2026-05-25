@@ -1,17 +1,20 @@
 import express from "express";
-
 import {
   registerUser,
   loginUser,
-  createHospital,
+  refreshToken,
+  getMe,
 } from "../controllers/authController.js";
+import { verifyToken } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// Public
 router.post("/register", registerUser);
-
 router.post("/login", loginUser);
+router.post("/refresh", refreshToken);
 
-router.post("/create-hospital", createHospital);
+// Protected
+router.get("/me", verifyToken, getMe);
 
 export default router;

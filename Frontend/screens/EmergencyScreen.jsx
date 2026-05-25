@@ -72,7 +72,7 @@ const EmergencyScreen = ({ navigation }) => {
       {/* 🤖 AI Button */}
       <TouchableOpacity
         style={[styles.actionBtn, { backgroundColor: '#22C55E' }]}
-        onPress={() => navigation.navigate('AIHelpScreen')}
+        onPress={() => navigation.navigate('AI')}
       >
         <MessageCircle color="#FFF" />
         <Text style={styles.btnText}>AI Medical Assistant</Text>

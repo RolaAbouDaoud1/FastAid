@@ -1,45 +1,312 @@
-POST http://localhost:5000/api/auth/register
+### FastAid API Tests
+### Base URL: http://localhost:5000
+
+@baseUrl = http://localhost:5000/api
+@accessToken = PASTE_ACCESS_TOKEN_HERE
+
+###############################################
+# AUTH
+###############################################
+
+### Register visitor
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "full_name": "Test User",
-  "email": "test@test.com",
-  "password": "123456",
+  "full_name": "Ali Khalil",
+  "email": "ali@example.com",
+  "password": "password123",
   "role": "visitor"
 }
+
 ###
-POST http://localhost:5000/api/auth/register
+
+### Register ambulance staff
+POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-  "full_name": "Hajar roro",
-  "email": "joo@rola.com",
-  "password": "001188",
-  "role": "visitor"
+  "full_name": "Ahmad Saad",
+  "email": "ahmad@ambulance.com",
+  "password": "password123",
+  "role": "ambulance_staff",
+  "car_nb": "LB-1234"
 }
+
 ###
-POST http://localhost:5000/api/auth/login
+
+### Login
+POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "test@test.com",
-  "password": "123456"
+  "email": "ali@example.com",
+  "password": "password123"
 }
+
 ###
-POST http://localhost:5000/api/auth/login
+
+### Refresh token
+POST {{baseUrl}}/auth/refresh
 Content-Type: application/json
 
 {
-  "email": "test@test.com",
-  "password": "123456"
+  "token": "PASTE_REFRESH_TOKEN_HERE"
 }
+
 ###
-POST http://localhost:5000/api/auth/register
+
+### Get current user
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# HOSPITALS (Admin)
+###############################################
+
+### Create hospital (admin only)
+POST {{baseUrl}}/hospitals
+Authorization: Bearer {{accessToken}}
 Content-Type: application/json
 
 {
-  "full_name": "Ali ali",
-  "email": "ali@a.com",
-  "password": "001158",
-  "role": "visitor"
+  "name": "Beirut General Hospital",
+  "email": "beirut@hospital.com",
+  "password": "hospital123",
+  "phone": "+961-1-234567",
+  "address": "Hamra Street, Beirut",
+  "location_lat": 33.8959,
+  "location_lng": 35.4784,
+  "departments": ["Emergency", "ICU", "General", "Pediatrics"],
+  "total_beds": 150
 }
+
+###
+
+### Get all hospitals
+GET {{baseUrl}}/hospitals?search=beirut&page=1&limit=10
+
+###
+
+### Get nearby hospitals
+GET {{baseUrl}}/hospitals/nearby?lat=33.8959&lng=35.4784&radius=15000
+
+###
+
+### Get hospital by ID
+GET {{baseUrl}}/hospitals/HOSPITAL_ID_HERE
+
+###
+
+### Update hospital (admin)
+PUT {{baseUrl}}/hospitals/HOSPITAL_ID_HERE
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "phone": "+961-1-999999",
+  "is_emergency_available": true,
+  "available_beds": 45
+}
+
+###
+
+### Add review (visitor)
+POST {{baseUrl}}/hospitals/HOSPITAL_ID_HERE/reviews
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "comment": "Excellent service and very clean!"
+}
+
+###
+
+### Hospital staff update wards
+PATCH {{baseUrl}}/hospitals/HOSPITAL_ID_HERE/wards
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "wards": [
+    { "name": "ICU - Level 3", "total_beds": 10, "available_beds": 4 },
+    { "name": "General Ward A", "total_beds": 25, "available_beds": 12 },
+    { "name": "Pediatric Wing", "total_beds": 8, "available_beds": 2 },
+    { "name": "Emergency - ER", "total_beds": 15, "available_beds": 1 }
+  ],
+  "available_beds": 19,
+  "is_emergency_available": true
+}
+
+###
+
+### Delete (deactivate) hospital (admin)
+DELETE {{baseUrl}}/hospitals/HOSPITAL_ID_HERE
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# DOCTORS
+###############################################
+
+### Add doctor (hospital staff / admin)
+POST {{baseUrl}}/doctors
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "name": "Dr. Sarah Johnson",
+  "specialization": "Cardiologist",
+  "phone": "+961-1-555000",
+  "email": "sarah@hospital.com",
+  "experience_years": 12,
+  "hospital_id": "HOSPITAL_ID_HERE"
+}
+
+###
+
+### Get all doctors
+GET {{baseUrl}}/doctors?specialization=Cardiologist&search=sarah
+
+###
+
+### Get doctors of a specific hospital
+GET {{baseUrl}}/doctors?hospital=HOSPITAL_ID_HERE
+
+###
+
+### Get doctor by ID
+GET {{baseUrl}}/doctors/DOCTOR_ID_HERE
+
+###
+
+### Update doctor
+PUT {{baseUrl}}/doctors/DOCTOR_ID_HERE
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "is_available": true,
+  "experience_years": 13
+}
+
+###
+
+### Delete doctor
+DELETE {{baseUrl}}/doctors/DOCTOR_ID_HERE
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# APPOINTMENTS
+###############################################
+
+### Book appointment (visitor)
+POST {{baseUrl}}/appointments
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "doctor_id": "DOCTOR_ID_HERE",
+  "hospital_id": "HOSPITAL_ID_HERE",
+  "date": "2026-11-02",
+  "time": "10:30 AM",
+  "notes": "First visit, chest pain concerns"
+}
+
+###
+
+### Get my appointments (visitor)
+GET {{baseUrl}}/appointments/my
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Cancel appointment (visitor)
+PATCH {{baseUrl}}/appointments/APPOINTMENT_ID_HERE/cancel
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Get hospital appointments (hospital staff)
+GET {{baseUrl}}/appointments/hospital?hospital_id=HOSPITAL_ID_HERE&status=Pending
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Confirm appointment (hospital staff)
+PATCH {{baseUrl}}/appointments/APPOINTMENT_ID_HERE/status
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "Confirmed"
+}
+
+###############################################
+# EMERGENCY
+###############################################
+
+### Trigger emergency (visitor)
+POST {{baseUrl}}/emergencies
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "lat": 33.8959,
+  "lng": 35.4784
+}
+
+###
+
+### Get pending emergencies (ambulance staff)
+GET {{baseUrl}}/emergencies/pending
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Accept emergency (ambulance staff)
+PATCH {{baseUrl}}/emergencies/EMERGENCY_ID_HERE/accept
+Authorization: Bearer {{accessToken}}
+
+###
+
+### Update emergency with vitals + timeline (ambulance staff)
+PATCH {{baseUrl}}/emergencies/EMERGENCY_ID_HERE
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "arrived",
+  "timeline_event": "Arrived at Scene",
+  "vitals": {
+    "heart_rate": "92",
+    "blood_pressure": "130/80",
+    "oxygen": "97"
+  },
+  "assigned_hospital": "HOSPITAL_ID_HERE"
+}
+
+###
+
+### Mark emergency complete
+PATCH {{baseUrl}}/emergencies/EMERGENCY_ID_HERE
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+
+{
+  "status": "completed",
+  "timeline_event": "Patient handed over to hospital"
+}
+
+###
+
+### Get all emergencies (admin)
+GET {{baseUrl}}/emergencies?status=pending
+Authorization: Bearer {{accessToken}}
+
+###############################################
+# HEALTH CHECK
+###############################################
+
+### Health check
+GET {{baseUrl}}/health
