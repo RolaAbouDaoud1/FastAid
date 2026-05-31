@@ -2,6 +2,7 @@ import User from "../models/User.js";
 import Hospital from "../models/Hospital.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 
 /* ─── helpers ─── */
 const signAccess = (payload) =>
@@ -9,6 +10,8 @@ const signAccess = (payload) =>
 
 const signRefresh = (payload) =>
   jwt.sign(payload, process.env.JWT_REFRESH_SECRET, { expiresIn: "30d" });
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /* ─── REGISTER (visitor / ambulance_staff) ─── */
 export const registerUser = async (req, res) => {
@@ -42,7 +45,7 @@ export const registerUser = async (req, res) => {
       role: role || "visitor",
       car_nb: role === "ambulance_staff" ? car_nb : undefined,
     });
-
+    
     const accessToken = signAccess({ id: user._id, role: user.role });
     const refreshToken = signRefresh({ id: user._id });
 
@@ -107,6 +110,52 @@ export const loginUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+
+// /* ─── Google sign in ─── */
+// export const googleLogin = async (req, res) => {
+//   try {
+//     const { token } = req.body;
+
+//     // 1. Verify token with Google
+//     const ticket = await client.verifyIdToken({
+//       idToken: token,
+//       audience: process.env.GOOGLE_CLIENT_ID,
+//     });
+
+//     const payload = ticket.getPayload();
+
+//     const email = payload.email;
+//     const full_name = payload.name;
+
+//     // 2. Check if user exists
+//     let user = await User.findOne({ email });
+
+//     // 3. If not exist → create user
+//     if (!user) {
+//       user = await User.create({
+//         full_name,
+//         email,
+//         password: null, // Google users don’t use password
+//         role: "visitor",
+//       });
+//     }
+
+//     // 4. Create YOUR JWT (same system as normal login)
+//     const accessToken = signAccess({ id: user._id, role: user.role });
+//     const refreshToken = signRefresh({ id: user._id });
+
+//     res.json({
+//       accessToken,
+//       refreshToken,
+//       user,
+//     });
+
+//   } catch (err) {
+//     console.log(err);
+//     res.status(500).json({ message: "Google login failed" });
+//   }
+// };
 
 /* ─── REFRESH TOKEN ─── */
 export const refreshToken = async (req, res) => {

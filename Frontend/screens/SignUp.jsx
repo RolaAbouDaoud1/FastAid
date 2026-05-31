@@ -11,6 +11,7 @@ import {
 
 import { Ionicons } from "@expo/vector-icons";
 import API from "../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignupScreen({ navigation }) {
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -42,28 +43,44 @@ export default function SignupScreen({ navigation }) {
         car_nb: role === "ambulance_staff" ? car_nb : null,
       });
 
-      Alert.alert("Success", response.data.message || "User created");
+      const { accessToken, refreshToken, user } = response.data;
 
-      navigation.navigate("Login");
+      // Save tokens
+      await AsyncStorage.setItem("accessToken", accessToken);
+      await AsyncStorage.setItem("refreshToken", refreshToken);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
 
+      Alert.alert("Success", "Account created successfully");
+
+      // Navigate by role
+      if (user.role === "visitor") {
+        navigation.replace("Main");
+      } else if (user.role === "ambulance_staff") {
+        navigation.replace("AmbulanceDashboard");
+      } else if (user.role === "hospital") {
+        navigation.replace("StaffDashboard");
+      } else if (user.role === "admin") {
+        navigation.replace("AdminDashboard");
+      } else {
+        Alert.alert("Error", "Unknown role");
+      }
+
+      // Alert.alert("Success", response.data.message || "User created");
+
+      // navigation.navigate("Login");
     } catch (error) {
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Signup failed"
-      );
+      Alert.alert("Error", error.response?.data?.message || "Signup failed");
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-
         <Text style={styles.title}>Create Account</Text>
         {/* ROLE SELECTOR */}
         <Text style={styles.roleTitle}>Select Role</Text>
 
         <View style={styles.roleContainer}>
-
           <TouchableOpacity
             style={[styles.roleButton, role === "visitor" && styles.activeRole]}
             onPress={() => setRole("visitor")}
@@ -72,12 +89,14 @@ export default function SignupScreen({ navigation }) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.roleButton, role === "ambulance_staff" && styles.activeRole]}
+            style={[
+              styles.roleButton,
+              role === "ambulance_staff" && styles.activeRole,
+            ]}
             onPress={() => setRole("ambulance_staff")}
           >
             <Text>Ambulance</Text>
           </TouchableOpacity>
-
         </View>
 
         {/* Full Name */}
@@ -114,7 +133,9 @@ export default function SignupScreen({ navigation }) {
             onChangeText={setPassword}
           />
 
-          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+          <TouchableOpacity
+            onPress={() => setPasswordVisible(!passwordVisible)}
+          >
             <Ionicons
               name={passwordVisible ? "eye-outline" : "eye-off-outline"}
               size={20}
@@ -122,7 +143,7 @@ export default function SignupScreen({ navigation }) {
             />
           </TouchableOpacity>
         </View>
-         {/* 🚑 CONDITIONAL FIELD */}
+        {/* 🚑 CONDITIONAL FIELD */}
         {role === "ambulance_staff" && (
           <View style={styles.inputContainer}>
             <Ionicons name="car-outline" size={20} color="#999" />
@@ -134,8 +155,6 @@ export default function SignupScreen({ navigation }) {
             />
           </View>
         )}
-
-       
 
         {/* Signup */}
         <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
@@ -152,7 +171,6 @@ export default function SignupScreen({ navigation }) {
             Login
           </Text>
         </Text>
-
       </View>
     </SafeAreaView>
   );

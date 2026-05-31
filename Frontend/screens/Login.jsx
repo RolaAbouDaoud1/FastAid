@@ -11,7 +11,6 @@
 // import { Alert } from "react-native";
 // import { Ionicons, FontAwesome } from "@expo/vector-icons";
 
-
 // export default function LoginScreen({navigation}) {
 //   const [email, setEmail] = useState("");
 //   const [password, setPassword] = useState("");
@@ -56,7 +55,7 @@
 //   return (
 //     <SafeAreaView style={styles.container}>
 //       <View style={styles.card}>
-        
+
 //         <Text style={styles.title}>Login</Text>
 
 //         <View style={styles.inputContainer}>
@@ -100,8 +99,6 @@
 //         >
 //           <Text style={styles.loginText}>Login</Text>
 //         </TouchableOpacity>
-
-        
 
 //         <Text style={styles.signupText}>
 //           Don’t have an account? <Text
@@ -239,7 +236,7 @@
 //   }
 // });
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -252,12 +249,20 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import API from "../services/api";
 import { Ionicons, FontAwesome } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
+WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // const [request, response, promptAsync] = Google.useAuthRequest({
+  //   webClientId: "660951641072-scpcvtnm03afs8ndb472s2tq622ntsj1.apps.googleusercontent.com",
+  // });
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -296,7 +301,8 @@ export default function LoginScreen({ navigation }) {
       console.log("LOGIN ERROR:", error.response?.data || error.message);
       Alert.alert(
         "Error",
-        error.response?.data?.message || "Login failed. Check your credentials."
+        error.response?.data?.message ||
+          "Login failed. Check your credentials.",
       );
     } finally {
       setLoading(false);
@@ -307,6 +313,41 @@ export default function LoginScreen({ navigation }) {
     setEmail("admin@fastaid.lb");
     setPassword("Admin@123");
   };
+
+//   useEffect(() => {
+//   const loginWithGoogle = async () => {
+//     if (response?.type === "success") {
+//       // const { id_token } = response.authentication;
+//       const id_token = response?.authentication?.idToken;
+
+//       try {
+//         const res = await API.post("/auth/google", {
+//           token: id_token,
+//         });
+
+//         const { accessToken, refreshToken, user } = res.data;
+
+//         await AsyncStorage.setItem("accessToken", accessToken);
+//         await AsyncStorage.setItem("refreshToken", refreshToken);
+//         await AsyncStorage.setItem("user", JSON.stringify(user));
+
+//         // Navigate
+//         if (user.role === "visitor") {
+//           navigation.replace("Main");
+//         } else if (user.role === "ambulance_staff") {
+//           navigation.replace("AmbulanceDashboard");
+//         } else if (user.role === "hospital") {
+//           navigation.replace("StaffDashboard");
+//         }
+
+//       } catch (err) {
+//         console.log("Google login error:", err);
+//       }
+//     }
+//   };
+
+//   loginWithGoogle();
+// }, [response]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -334,7 +375,9 @@ export default function LoginScreen({ navigation }) {
             value={password}
             onChangeText={setPassword}
           />
-          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+          <TouchableOpacity
+            onPress={() => setPasswordVisible(!passwordVisible)}
+          >
             <Ionicons
               name={passwordVisible ? "eye-outline" : "eye-off-outline"}
               size={20}
@@ -366,18 +409,17 @@ export default function LoginScreen({ navigation }) {
             Sign up
           </Text>
         </Text>
-                  <TouchableOpacity style={styles.adminHint} onPress={fillAdmin}>
-                            <Text style={styles.adminHintText}>
-                              👤 Admin? Tap here to fill credentials
-                            </Text>
-                          </TouchableOpacity>
-        <View style={styles.socialContainer}>
+        <TouchableOpacity style={styles.adminHint} onPress={fillAdmin}>
+          <Text style={styles.adminHintText}>
+            👤 Admin? Tap here to fill credentials
+          </Text>
+        </TouchableOpacity>
+        {/* <View style={styles.socialContainer}>
           <TouchableOpacity style={styles.socialButton}>
-            <FontAwesome name="google" size={18} color="#DB4437" />
-            <Text style={styles.socialText}> Sign in with Google</Text>
-          </TouchableOpacity>
+            <Text>Sign in with Google</Text>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity style={styles.socialButton}>
+          {/* <TouchableOpacity style={styles.socialButton}>
             <FontAwesome name="apple" size={18} color="#000" />
             <Text style={styles.socialText}> Sign in with Apple</Text>
           </TouchableOpacity>
@@ -385,8 +427,8 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity style={styles.socialButton}>
             <FontAwesome name="facebook" size={18} color="#1877F2" />
             <Text style={styles.socialText}> Sign in with Facebook</Text>
-          </TouchableOpacity>
-        </View>
+          </TouchableOpacity> */}
+        {/* </View> */}
       </View>
     </SafeAreaView>
   );

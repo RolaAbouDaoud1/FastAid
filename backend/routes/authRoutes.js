@@ -13,6 +13,7 @@ const router = express.Router();
 router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.post("/refresh", refreshToken);
+// router.post("/google", googleLogin);
 
 // Protected
 router.get("/me", verifyToken, getMe);

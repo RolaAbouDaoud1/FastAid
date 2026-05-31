@@ -10,6 +10,7 @@ import hospitalRoutes from "./routes/hospitalRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 
 connectDB();
 
@@ -25,6 +26,7 @@ app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/emergencies", emergencyRoutes);
+app.use('/api/products', productRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

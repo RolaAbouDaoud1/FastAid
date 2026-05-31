@@ -18,7 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ✅ Change this IP to your computer's local IP when testing on a real device
 const API = axios.create({
-  baseURL: "http://192.168.2.114:5000/api",
+  baseURL: "http://192.168.1.116:5000/api",
 });
 
 // Automatically attach the saved token to every request

@@ -19,6 +19,18 @@ Content-Type: application/json
   "role": "visitor"
 }
 
+### Register visitor
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "full_name": "Ali Hallal",
+  "email": "alihallal@example.com",
+  "password": "password1234",
+  "role": "visitor"
+}
+
+
 ###
 
 ### Register ambulance staff
