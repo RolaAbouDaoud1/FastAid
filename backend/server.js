@@ -10,7 +10,9 @@ import hospitalRoutes from "./routes/hospitalRoutes.js";
 import doctorRoutes from "./routes/doctorRoutes.js";
 import appointmentRoutes from "./routes/appointmentRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js"; 
 import productRoutes from "./routes/productRoutes.js";
+
 
 connectDB();
 
@@ -26,11 +28,17 @@ app.use("/api/hospitals", hospitalRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/emergencies", emergencyRoutes);
+app.use("/api/ai",aiRoutes); 
 app.use('/api/products', productRoutes);
+
 
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
+});
+app.get("/test", (req, res) => {
+  console.log("TEST ROUTE HIT");
+  res.json({ ok: true });
 });
 
 // 404 handler

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
-import logo from '../assets/FastAid-Logo (2).png';
+import logo from '../assets/FastAid-Logo.png';
 
 export default function FirstScreen({ navigation }) {
 

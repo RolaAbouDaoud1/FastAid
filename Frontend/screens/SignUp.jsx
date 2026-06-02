@@ -26,6 +26,7 @@ export default function SignupScreen({ navigation }) {
   const [car_nb, setCarNb] = useState("");
 
   const handleSignup = async () => {
+    console.log("🚀 Signup button clicked");
     try {
       if (!full_name || !email || !password) {
         return Alert.alert("Error", "Please fill all fields");
@@ -42,6 +43,11 @@ export default function SignupScreen({ navigation }) {
         role,
         car_nb: role === "ambulance_staff" ? car_nb : null,
       });
+
+console.log("✅ Response from backend:", response.data);
+      Alert.alert("Success", response.data.message || "User created");
+
+      navigation.navigate("Main");
 
       const { accessToken, refreshToken, user } = response.data;
 
@@ -69,7 +75,17 @@ export default function SignupScreen({ navigation }) {
 
       // navigation.navigate("Login");
     } catch (error) {
+
+       console.log("🔥 ERROR CAUGHT:", error);
+    console.log("🔥 RESPONSE:", error.response?.data);
+    console.log("🔥 MESSAGE:", error.message);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Signup failed"
+      );
+
       Alert.alert("Error", error.response?.data?.message || "Signup failed");
+
     }
   };
 
