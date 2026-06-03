@@ -135,7 +135,7 @@ const DoctorsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate('home')}>
+        <TouchableOpacity onPress={() => navigation.navigate("Main")}>
           <ChevronLeft color="#333" size={28} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>All Doctors</Text>

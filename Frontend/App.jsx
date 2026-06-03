@@ -1,11 +1,14 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import StackNavigator from "./navigation/StackNavigator";
+import { DoctorsProvider } from "./context/DoctorsContext";
 
 export default function App() {
   return (
-    <NavigationContainer>
-      <StackNavigator />
-    </NavigationContainer>
+    <DoctorsProvider>
+      <NavigationContainer>
+        <StackNavigator />
+      </NavigationContainer>
+    </DoctorsProvider>
   );
 }

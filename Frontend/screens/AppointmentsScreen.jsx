@@ -1,49 +1,3 @@
-// import React from 'react';
-// import { StyleSheet, View, Text, FlatList, SafeAreaView } from 'react-native';
-// import { Clock, Calendar } from 'lucide-react-native';
-
-// const AppointmentsScreen = () => {
-//   // const appointments = [
-//   //   { id: '1', doctor: 'Dr. Sarah Johnson', date: 'Oct 24, 2026', time: '10:30 AM', status: 'Confirmed' },
-//   //   { id: '2', doctor: 'Dr. Michael Chen', date: 'Nov 02, 2026', time: '02:00 PM', status: 'Pending' },
-//   // ];
-
-//   API.get("/appointments/my");
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <Text style={styles.title}>My Appointments</Text>
-//       <FlatList
-//         data={appointments}
-//         renderItem={({ item }) => (
-//           <View style={styles.aptCard}>
-//             <Text style={styles.docName}>{item.doctor}</Text>
-//             <View style={styles.detailsRow}>
-//               <View style={styles.detail}><Calendar size={14} color="#666" /><Text style={styles.detailText}>{item.date}</Text></View>
-//               <View style={styles.detail}><Clock size={14} color="#666" /><Text style={styles.detailText}>{item.time}</Text></View>
-//             </View>
-//             <View style={[styles.badge, { backgroundColor: item.status === 'Confirmed' ? '#E8F5E9' : '#FFF3E0' }]}>
-//               <Text style={{ color: item.status === 'Confirmed' ? '#2D6A4F' : '#FB8500', fontWeight: 'bold' }}>{item.status}</Text>
-//             </View>
-//           </View>
-//         )}
-//       />
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: { flex: 1, backgroundColor: '#F8FAFC', padding: 20 },
-//   title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-//   aptCard: { backgroundColor: '#FFF', padding: 20, borderRadius: 15, marginBottom: 15, elevation: 2 },
-//   docName: { fontSize: 16, fontWeight: 'bold', marginBottom: 10 },
-//   detailsRow: { flexDirection: 'row', marginBottom: 15 },
-//   detail: { flexDirection: 'row', alignItems: 'center', marginRight: 20 },
-//   detailText: { marginLeft: 5, color: '#666', fontSize: 13 },
-//   badge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 }
-// });
-
-// export default AppointmentsScreen;
-
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet, View, Text, FlatList, SafeAreaView,
@@ -64,27 +18,44 @@ const AppointmentsScreen = ({ route }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Book modal state
+  // Modal / booking state
   const [modalVisible, setModalVisible] = useState(false);
   const [booking, setBooking] = useState(false);
-  const [date, setDate] = useState('');   // e.g. 2026-11-02
-  const [time, setTime] = useState('');   // e.g. 10:30 AM
+  const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const [notes, setNotes] = useState('');
 
-  // If coming from DoctorsScreen with a selected doctor, pre-fill it
+  // If navigated from DoctorsScreen a doctor object is passed as route param
   const preselectedDoctor = route?.params?.selectedDoctor || null;
+
+  // doctorId and hospitalId are either pre-filled or typed manually
   const [doctorId, setDoctorId] = useState(preselectedDoctor?._id || '');
   const [hospitalId, setHospitalId] = useState(
-    preselectedDoctor?.hospital?._id || preselectedDoctor?.hospital || ''
+    preselectedDoctor?.hospital?._id ||
+    preselectedDoctor?.hospital ||   // may be a raw ObjectId string
+    ''
   );
 
   useEffect(() => {
     fetchAppointments();
-    // Open book modal automatically if a doctor was passed in
     if (preselectedDoctor) {
       setModalVisible(true);
     }
   }, []);
+
+  // If the user navigates back to this screen with a new selectedDoctor param,
+  // update the IDs and open the modal again.
+  useEffect(() => {
+    if (preselectedDoctor) {
+      setDoctorId(preselectedDoctor._id || '');
+      setHospitalId(
+        preselectedDoctor?.hospital?._id ||
+        preselectedDoctor?.hospital ||
+        ''
+      );
+      setModalVisible(true);
+    }
+  }, [route?.params?.selectedDoctor]);
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -98,10 +69,28 @@ const AppointmentsScreen = ({ route }) => {
     }
   };
 
+  const openNewBookingModal = () => {
+    // Reset fields when opening without a pre-selected doctor
+    setDoctorId('');
+    setHospitalId('');
+    setDate('');
+    setTime('');
+    setNotes('');
+    setModalVisible(true);
+  };
+
   const handleBook = async () => {
     if (!doctorId || !hospitalId || !date || !time) {
-      return Alert.alert('Error', 'Please fill all required fields');
+      return Alert.alert(
+        'Missing Fields',
+        'Please fill in Doctor ID, Hospital ID, date, and time.'
+      );
     }
+    // Basic date format validation (YYYY-MM-DD)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return Alert.alert('Invalid Date', 'Please use the format YYYY-MM-DD (e.g. 2026-11-02)');
+    }
+
     setBooking(true);
     try {
       await API.post('/appointments', {
@@ -111,19 +100,31 @@ const AppointmentsScreen = ({ route }) => {
         time,
         notes,
       });
-      Alert.alert('Success', 'Appointment booked!');
+      Alert.alert('Booked!', 'Your appointment has been created.');
       setModalVisible(false);
-      setDate(''); setTime(''); setNotes('');
+      resetForm();
       fetchAppointments();
     } catch (e) {
-      Alert.alert('Error', e.response?.data?.message || 'Booking failed');
+      Alert.alert('Booking Failed', e.response?.data?.message || 'Please try again.');
     } finally {
       setBooking(false);
     }
   };
 
+  const resetForm = () => {
+    setDate('');
+    setTime('');
+    setNotes('');
+    // Only reset IDs if there's no pre-selected doctor so they stay pre-filled
+    // for the next time the modal opens from DoctorsScreen
+    if (!preselectedDoctor) {
+      setDoctorId('');
+      setHospitalId('');
+    }
+  };
+
   const handleCancel = (id) => {
-    Alert.alert('Cancel Appointment', 'Are you sure?', [
+    Alert.alert('Cancel Appointment', 'Are you sure you want to cancel?', [
       { text: 'No', style: 'cancel' },
       {
         text: 'Yes, Cancel',
@@ -133,7 +134,7 @@ const AppointmentsScreen = ({ route }) => {
             await API.patch(`/appointments/${id}/cancel`);
             fetchAppointments();
           } catch (e) {
-            Alert.alert('Error', 'Could not cancel appointment');
+            Alert.alert('Error', 'Could not cancel. Please try again.');
           }
         },
       },
@@ -143,7 +144,7 @@ const AppointmentsScreen = ({ route }) => {
   const formatDate = (isoDate) => {
     if (!isoDate) return '';
     return new Date(isoDate).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
+      month: 'short', day: 'numeric', year: 'numeric',
     });
   };
 
@@ -172,7 +173,6 @@ const AppointmentsScreen = ({ route }) => {
             </Text>
           </View>
 
-          {/* Show cancel button only if still cancellable */}
           {['Pending', 'Confirmed'].includes(item.status) && (
             <TouchableOpacity
               style={styles.cancelBtn}
@@ -191,10 +191,7 @@ const AppointmentsScreen = ({ route }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.titleRow}>
         <Text style={styles.title}>My Appointments</Text>
-        <TouchableOpacity
-          style={styles.addBtn}
-          onPress={() => setModalVisible(true)}
-        >
+        <TouchableOpacity style={styles.addBtn} onPress={openNewBookingModal}>
           <Plus size={20} color="#FFF" />
         </TouchableOpacity>
       </View>
@@ -202,7 +199,7 @@ const AppointmentsScreen = ({ route }) => {
       {loading ? (
         <ActivityIndicator size="large" color="#2D6A4F" style={{ marginTop: 60 }} />
       ) : appointments.length === 0 ? (
-        <Text style={styles.emptyText}>No appointments yet. Tap + to book one.</Text>
+        <Text style={styles.emptyText}>No appointments yet.{'\n'}Tap + to book one.</Text>
       ) : (
         <FlatList
           data={appointments}
@@ -212,38 +209,45 @@ const AppointmentsScreen = ({ route }) => {
         />
       )}
 
-      {/* ── BOOK APPOINTMENT MODAL ──────────────────── */}
+      {/* ── BOOK APPOINTMENT MODAL ── */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>Book Appointment</Text>
 
-              {preselectedDoctor && (
+              {/* Pre-filled doctor info (navigated from DoctorsScreen) */}
+              {preselectedDoctor ? (
                 <View style={styles.prefilledBox}>
                   <Text style={styles.prefilledLabel}>Doctor</Text>
                   <Text style={styles.prefilledValue}>{preselectedDoctor.name}</Text>
                   <Text style={styles.prefilledSub}>{preselectedDoctor.specialization}</Text>
+                  {preselectedDoctor?.hospital?.name && (
+                    <Text style={styles.prefilledSub}>
+                      🏥 {preselectedDoctor.hospital.name}
+                    </Text>
+                  )}
                 </View>
-              )}
-
-              {!preselectedDoctor && (
+              ) : (
                 <>
                   <Text style={styles.inputLabel}>Doctor ID *</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Paste doctor ID"
+                    placeholder="Paste the doctor's ID"
                     value={doctorId}
                     onChangeText={setDoctorId}
                     autoCapitalize="none"
+                    autoCorrect={false}
                   />
+
                   <Text style={styles.inputLabel}>Hospital ID *</Text>
                   <TextInput
                     style={styles.input}
-                    placeholder="Paste hospital ID"
+                    placeholder="Paste the hospital's ID"
                     value={hospitalId}
                     onChangeText={setHospitalId}
                     autoCapitalize="none"
+                    autoCorrect={false}
                   />
                 </>
               )}
@@ -254,6 +258,7 @@ const AppointmentsScreen = ({ route }) => {
                 placeholder="e.g. 2026-11-02"
                 value={date}
                 onChangeText={setDate}
+                keyboardType="numbers-and-punctuation"
               />
 
               <Text style={styles.inputLabel}>Time * (e.g. 10:30 AM)</Text>
@@ -285,7 +290,10 @@ const AppointmentsScreen = ({ route }) => {
 
               <TouchableOpacity
                 style={styles.closeBtn}
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  setModalVisible(false);
+                  resetForm();
+                }}
               >
                 <Text style={styles.closeBtnText}>Close</Text>
               </TouchableOpacity>
@@ -320,6 +328,10 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     marginBottom: 15,
     elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
   },
   docName: { fontSize: 16, fontWeight: 'bold' },
   specialty: { color: '#888', fontSize: 13, marginTop: 2, marginBottom: 10 },
@@ -330,7 +342,9 @@ const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 8 },
   cancelBtn: { flexDirection: 'row', alignItems: 'center', padding: 6 },
   cancelText: { color: '#E63946', fontSize: 13, marginLeft: 4, fontWeight: '600' },
-  emptyText: { textAlign: 'center', color: '#999', marginTop: 60, fontSize: 15, lineHeight: 24 },
+  emptyText: {
+    textAlign: 'center', color: '#999', marginTop: 60, fontSize: 15, lineHeight: 24,
+  },
 
   // Modal
   modalOverlay: {
@@ -343,7 +357,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
-    maxHeight: '85%',
+    maxHeight: '88%',
   },
   modalTitle: { fontSize: 20, fontWeight: 'bold', marginBottom: 20 },
   prefilledBox: {
@@ -352,10 +366,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 16,
   },
-  prefilledLabel: { fontSize: 11, color: '#2D6A4F', fontWeight: '700', textTransform: 'uppercase' },
+  prefilledLabel: {
+    fontSize: 11, color: '#2D6A4F', fontWeight: '700', textTransform: 'uppercase',
+  },
   prefilledValue: { fontSize: 16, fontWeight: 'bold', marginTop: 4 },
-  prefilledSub: { fontSize: 13, color: '#666' },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 8 },
+  prefilledSub: { fontSize: 13, color: '#666', marginTop: 2 },
+  inputLabel: {
+    fontSize: 13, fontWeight: '600', color: '#555', marginBottom: 6, marginTop: 8,
+  },
   input: {
     borderWidth: 1,
     borderColor: '#E0E0E0',
@@ -363,6 +381,7 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
     marginBottom: 4,
+    backgroundColor: '#FAFAFA',
   },
   bookBtn: {
     backgroundColor: '#2D6A4F',

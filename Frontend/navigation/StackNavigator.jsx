@@ -15,13 +15,25 @@ import PharmacyScreen from "../screens/PharmacyScreen";
 import AppointmentsScreen from "../screens/AppointmentsScreen";
 import StaffDashboard from "../screens/StaffDashboard";
 import AmbulanceStaffScreen from "../screens/AmbulanceStaffScreen";
+import HospitalDashboard from "../screens/HospitalDashboard";
 
 const Stack = createNativeStackNavigator();
+
+// Screens where the logout button should NOT appear
+const NO_LOGOUT_SCREENS = ["Login", "SignUp", "FirstScreen"];
 
 const LogoutButton = ({ navigation }) => (
   <TouchableOpacity
     onPress={async () => {
-      await AsyncStorage.removeItem("token");
+      // Clear all auth keys saved during login / signup
+      await AsyncStorage.multiRemove([
+        "accessToken",
+        "refreshToken",
+        "user",
+        "hospitalId",
+        "role",
+        "token", // legacy key — remove just in case
+      ]);
       navigation.replace("Login");
     }}
     style={{ marginRight: 12 }}
@@ -31,32 +43,72 @@ const LogoutButton = ({ navigation }) => (
 );
 
 export default function StackNavigator() {
-  const authScreens = ["Login", "SignUp"];
-
   return (
     <Stack.Navigator
       initialRouteName="FirstScreen"
       screenOptions={({ navigation, route }) => ({
         headerShown: true,
         headerRight: () => {
-          if (authScreens.includes(route.name)) return null;
+          if (NO_LOGOUT_SCREENS.includes(route.name)) return null;
           return <LogoutButton navigation={navigation} />;
         },
       })}
     >
-      <Stack.Screen name="FirstScreen" component={FirstScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen
+        name="FirstScreen"
+        component={FirstScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
+      <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
 
-      <Stack.Screen name="Main" component={TabNavigator} options={{ title: "FastAid",  headerTintColor: "#2e8b57",}} />
+      {/* Main tab navigator for visitors */}
+      <Stack.Screen
+        name="Main"
+        component={TabNavigator}
+        options={{ title: "FastAid", headerTintColor: "#2e8b57" }}
+      />
 
-      <Stack.Screen name="DoctorsList" component={DoctorsScreen} />
+      {/* Stack-only screens (navigated to from inside tabs) */}
+      <Stack.Screen
+        name="DoctorsList"
+        component={DoctorsScreen}
+        options={{ title: "Doctors", headerShown: false }}
+      />
       <Stack.Screen name="Pharmacy" component={PharmacyScreen} />
-      <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+      <Stack.Screen
+        name="Appointments"
+        component={AppointmentsScreen}
+        options={{ title: "My Appointments" }}
+      />
 
-      <Stack.Screen name="AdminDashboard" component={AdminDashboard} />
-      <Stack.Screen name="StaffDashboard" component={StaffDashboard} />
-      <Stack.Screen name="AmbulanceDashboard" component={AmbulanceStaffScreen} />
+      {/* Role-based dashboards */}
+      <Stack.Screen
+        name="AdminDashboard"
+        component={AdminDashboard}
+        options={{ title: "Admin Dashboard" }}
+      />
+      <Stack.Screen
+        name="StaffDashboard"
+        component={StaffDashboard}
+        options={{ title: "Staff Dashboard" }}
+      />
+      <Stack.Screen
+        name="AmbulanceDashboard"
+        component={AmbulanceStaffScreen}
+        options={{ title: "Ambulance Dashboard" }}
+      />
+      {/* Both spellings registered so either casing works */}
+      <Stack.Screen
+        name="hospitalDashboard"
+        component={HospitalDashboard}
+        options={{ title: "Hospital Dashboard" }}
+      />
+      <Stack.Screen
+        name="HospitalDashboard"
+        component={HospitalDashboard}
+        options={{ title: "Hospital Dashboard" }}
+      />
     </Stack.Navigator>
   );
 }
