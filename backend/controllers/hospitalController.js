@@ -8,7 +8,7 @@ export const createHospital = async (req, res) => {
     const {
       name, email, password, phone, address,
       location_name, location_lat, location_lng,
-      departments, total_beds,
+      departments, total_beds, image_url,
     } = req.body;
 
     if (!name || !email || !password) {
@@ -42,6 +42,7 @@ export const createHospital = async (req, res) => {
       location_name: location_name || "",
       location: { lat, lng },
       coordinates: { type: "Point", coordinates: [lng, lat] },
+      image_url,
       departments: depts,
       total_beds: beds,
       available_beds: beds,

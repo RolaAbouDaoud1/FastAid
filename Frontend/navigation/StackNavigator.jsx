@@ -16,6 +16,7 @@ import AppointmentsScreen from "../screens/AppointmentsScreen";
 import StaffDashboard from "../screens/StaffDashboard";
 import AmbulanceStaffScreen from "../screens/AmbulanceStaffScreen";
 import HospitalDashboard from "../screens/HospitalDashboard";
+import AIHelpScreen from "../screens/AIHelpScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -108,6 +109,11 @@ export default function StackNavigator() {
         name="HospitalDashboard"
         component={HospitalDashboard}
         options={{ title: "Hospital Dashboard" }}
+      />
+      <Stack.Screen
+        name="AIHelpScreen"
+        component={AIHelpScreen}
+        options={{ title: "AI Help Screen" }}
       />
     </Stack.Navigator>
   );

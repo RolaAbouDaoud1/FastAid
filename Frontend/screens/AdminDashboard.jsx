@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LogOut } from "lucide-react-native";
-
+import HospitalAvatar from "../Avatar/InitialsAvatar";
 import {
   Star,
   MapPin,
@@ -61,6 +61,7 @@ export default function AdminDashboard({ navigation }) {
     departments: "",
     total_beds: "",
     available_beds: "",
+    image_url: "",
   });
 
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -89,10 +90,7 @@ export default function AdminDashboard({ navigation }) {
       const res = await API.get("/hospitals?limit=100");
       setHospitals(res.data.hospitals || []);
     } catch (e) {
-      console.log(
-        "Failed to load hospitals:",
-        e.response?.data || e.message
-      );
+      console.log("Failed to load hospitals:", e.response?.data || e.message);
     } finally {
       setLoadingList(false);
     }
@@ -101,29 +99,26 @@ export default function AdminDashboard({ navigation }) {
   // ── Create hospital ────────────────────────────────────
   const handleCreate = async () => {
     if (!form.name || !form.email || !form.password) {
-      return Alert.alert(
-        "Error",
-        "Name, email and password are required"
-      );
+      return Alert.alert("Error", "Name, email and password are required");
     }
 
     setCreating(true);
-
+    
     try {
+      console.log("FORM IMAGE:", form.image_url);
       await API.post("/hospitals", {
         name: form.name,
         email: form.email,
         password: form.password,
         phone: form.phone,
+        image_url: form.image_url,
         address: form.address,
         location_name: form.location_name,
         location_lat: form.location_lat,
         location_lng: form.location_lng,
-        departments:
-          form.departments || "Emergency,ICU,General",
+        departments: form.departments || "Emergency,ICU,General",
         total_beds: parseInt(form.total_beds) || 0,
-        available_beds:
-          parseInt(form.available_beds) || 0,
+        available_beds: parseInt(form.available_beds) || 0,
       });
 
       Alert.alert("Success", "Hospital created!");
@@ -132,6 +127,7 @@ export default function AdminDashboard({ navigation }) {
         name: "",
         email: "",
         password: "",
+        image_url: "",
         phone: "",
         address: "",
         location_name: "",
@@ -148,8 +144,7 @@ export default function AdminDashboard({ navigation }) {
     } catch (e) {
       Alert.alert(
         "Error",
-        e.response?.data?.message ||
-          "Failed to create hospital"
+        e.response?.data?.message || "Failed to create hospital",
       );
     } finally {
       setCreating(false);
@@ -165,15 +160,11 @@ export default function AdminDashboard({ navigation }) {
       phone: h.phone || "",
       address: h.address || "",
       location_name: h.location_name || "",
-      location_lat:
-        h.location?.lat?.toString() || "",
-      location_lng:
-        h.location?.lng?.toString() || "",
+      location_lat: h.location?.lat?.toString() || "",
+      location_lng: h.location?.lng?.toString() || "",
       departments: (h.departments || []).join(", "),
-      total_beds:
-        h.total_beds?.toString() || "",
-      available_beds:
-        h.available_beds?.toString() || "",
+      total_beds: h.total_beds?.toString() || "",
+      available_beds: h.available_beds?.toString() || "",
     });
   };
 
@@ -189,21 +180,14 @@ export default function AdminDashboard({ navigation }) {
         location_name: editForm.location_name,
         location_lat: editForm.location_lat,
         location_lng: editForm.location_lng,
-        departments: editForm.departments
-          .split(",")
-          .map((d) => d.trim()),
+        departments: editForm.departments.split(",").map((d) => d.trim()),
 
-        total_beds:
-          parseInt(editForm.total_beds) || 0,
+        total_beds: parseInt(editForm.total_beds) || 0,
 
-        available_beds:
-          parseInt(editForm.available_beds) || 0,
+        available_beds: parseInt(editForm.available_beds) || 0,
       });
 
-      Alert.alert(
-        "Success",
-        "Hospital updated successfully"
-      );
+      Alert.alert("Success", "Hospital updated successfully");
 
       setEditTarget(null);
 
@@ -211,8 +195,7 @@ export default function AdminDashboard({ navigation }) {
     } catch (e) {
       Alert.alert(
         "Error",
-        e.response?.data?.message ||
-          "Failed to update hospital"
+        e.response?.data?.message || "Failed to update hospital",
       );
     } finally {
       setSaving(false);
@@ -221,44 +204,31 @@ export default function AdminDashboard({ navigation }) {
 
   // ── Delete hospital ────────────────────────────────────
   const handleDelete = (id, name) => {
-    Alert.alert(
-      "Deactivate Hospital",
-      `Deactivate "${name}"?`,
-      [
-        {
-          text: "Cancel",
-          style: "cancel",
+    Alert.alert("Deactivate Hospital", `Deactivate "${name}"?`, [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Deactivate",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await API.delete(`/hospitals/${id}`);
+            fetchHospitals();
+          } catch {
+            Alert.alert("Error", "Failed to deactivate hospital");
+          }
         },
-        {
-          text: "Deactivate",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await API.delete(`/hospitals/${id}`);
-              fetchHospitals();
-            } catch {
-              Alert.alert(
-                "Error",
-                "Failed to deactivate hospital"
-              );
-            }
-          },
-        },
-      ]
-    );
+      },
+    ]);
   };
 
   return (
-
-    
     <SafeAreaView style={styles.safe}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={
-          Platform.OS === "ios"
-            ? "padding"
-            : "height"
-        }
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <ScrollView
           ref={scrollRef}
@@ -266,10 +236,8 @@ export default function AdminDashboard({ navigation }) {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
         >
-
           <View style={styles.headerWrapper}>
-  
-  {/* <TouchableOpacity
+            {/* <TouchableOpacity
     style={styles.backBtn}
     onPress={() => navigation.goBack()}
   >
@@ -280,7 +248,7 @@ export default function AdminDashboard({ navigation }) {
     Admin Dashboard
   </Text> */}
 
-  {/* <TouchableOpacity
+            {/* <TouchableOpacity
     style={styles.logoutBtn}
     onPress={async () => {
       await AsyncStorage.removeItem("token");
@@ -289,20 +257,17 @@ export default function AdminDashboard({ navigation }) {
   >
     <LogOut size={22} color="red" />
   </TouchableOpacity> */}
-
-</View>
+          </View>
           {/* HEADER */}
           <View style={styles.header}>
             <TouchableOpacity
               style={styles.backBtn}
-              onPress={() => navigation.navigate('FirstScreen')}
+              onPress={() => navigation.navigate("FirstScreen")}
             >
               <ArrowLeft size={22} color="#222" />
             </TouchableOpacity>
 
-            <Text style={styles.pageTitle}>
-              Admin Dashboard
-            </Text>
+            <Text style={styles.pageTitle}>Admin Dashboard</Text>
 
             <View style={{ width: 40 }} />
           </View>
@@ -311,24 +276,14 @@ export default function AdminDashboard({ navigation }) {
           <View style={styles.card}>
             <TouchableOpacity
               style={styles.sectionRow}
-              onPress={() =>
-                setShowCreateForm((v) => !v)
-              }
+              onPress={() => setShowCreateForm((v) => !v)}
             >
-              <Text style={styles.sectionTitle}>
-                ➕ Create Hospital
-              </Text>
+              <Text style={styles.sectionTitle}>➕ Create Hospital</Text>
 
               {showCreateForm ? (
-                <ChevronUp
-                  size={20}
-                  color="#555"
-                />
+                <ChevronUp size={20} color="#555" />
               ) : (
-                <ChevronDown
-                  size={20}
-                  color="#555"
-                />
+                <ChevronDown size={20} color="#555" />
               )}
             </TouchableOpacity>
 
@@ -370,6 +325,18 @@ export default function AdminDashboard({ navigation }) {
                   }
                   secureTextEntry
                   placeholder="Password"
+                />
+
+                <Field
+                  label="Hospital Image URL"
+                  value={form.image_url}
+                  onChange={(v) =>
+                    setForm({
+                      ...form,
+                      image_url: v,
+                    })
+                  }
+                  placeholder="https://example.com/hospital.jpg"
                 />
 
                 <Field
@@ -490,9 +457,7 @@ export default function AdminDashboard({ navigation }) {
                   disabled={creating}
                 >
                   <Text style={styles.buttonText}>
-                    {creating
-                      ? "Creating..."
-                      : "Create Hospital"}
+                    {creating ? "Creating..." : "Create Hospital"}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -506,54 +471,32 @@ export default function AdminDashboard({ navigation }) {
                 🏥 Hospitals ({hospitals.length})
               </Text>
 
-              <TouchableOpacity
-                onPress={fetchHospitals}
-              >
-                <Text style={styles.refreshBtn}>
-                  Refresh
-                </Text>
+              <TouchableOpacity onPress={fetchHospitals}>
+                <Text style={styles.refreshBtn}>Refresh</Text>
               </TouchableOpacity>
             </View>
 
             {loadingList ? (
-              <ActivityIndicator
-                color="#2e8b57"
-                style={{ marginTop: 20 }}
-              />
+              <ActivityIndicator color="#2e8b57" style={{ marginTop: 20 }} />
             ) : hospitals.length === 0 ? (
-              <Text style={styles.emptyText}>
-                No hospitals found.
-              </Text>
+              <Text style={styles.emptyText}>No hospitals found.</Text>
             ) : (
               hospitals.map((h) => (
-                <View
-                  key={h._id}
-                  style={styles.hospitalRow}
-                >
+                <View key={h._id} style={styles.hospitalRow}>
+                  <HospitalAvatar name={h.name} image_url={h.image_url} size={44} />
                   <View style={styles.hospitalInfo}>
-                    <Text style={styles.hospitalName}>
-                      {h.name}
-                    </Text>
+                    <Text style={styles.hospitalName}>{h.name}</Text>
 
                     {!!h.location_name && (
                       <View style={styles.subRow}>
-                        <MapPin
-                          size={12}
-                          color="#999"
-                        />
+                        <MapPin size={12} color="#999" />
 
-                        <Text style={styles.subText}>
-                          {h.location_name}
-                        </Text>
+                        <Text style={styles.subText}>{h.location_name}</Text>
                       </View>
                     )}
 
                     <View style={styles.subRow}>
-                      <Star
-                        size={12}
-                        fill="#FFD700"
-                        color="#FFD700"
-                      />
+                      <Star size={12} fill="#FFD700" color="#FFD700" />
 
                       <Text style={styles.subText}>
                         {h.average_rating > 0
@@ -563,37 +506,23 @@ export default function AdminDashboard({ navigation }) {
                     </View>
 
                     <Text style={styles.bedsText}>
-                      {h.available_beds}/
-                      {h.total_beds} beds available
+                      {h.available_beds}/{h.total_beds} beds available
                     </Text>
                   </View>
 
                   <View style={styles.actionBtns}>
                     <TouchableOpacity
                       style={styles.iconBtn}
-                      onPress={() =>
-                        openEdit(h)
-                      }
+                      onPress={() => openEdit(h)}
                     >
-                      <Edit3
-                        size={18}
-                        color="#4A90E2"
-                      />
+                      <Edit3 size={18} color="#4A90E2" />
                     </TouchableOpacity>
 
                     <TouchableOpacity
                       style={styles.iconBtn}
-                      onPress={() =>
-                        handleDelete(
-                          h._id,
-                          h.name
-                        )
-                      }
+                      onPress={() => handleDelete(h._id, h.name)}
                     >
-                      <Trash2
-                        size={18}
-                        color="#E63946"
-                      />
+                      <Trash2 size={18} color="#E63946" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -604,41 +533,22 @@ export default function AdminDashboard({ navigation }) {
       </KeyboardAvoidingView>
 
       {/* EDIT MODAL */}
-      <Modal
-        visible={!!editTarget}
-        transparent
-        animationType="slide"
-      >
+      <Modal visible={!!editTarget} transparent animationType="slide">
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={
-            Platform.OS === "ios"
-              ? "padding"
-              : "height"
-          }
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  Edit Hospital
-                </Text>
+                <Text style={styles.modalTitle}>Edit Hospital</Text>
 
-                <TouchableOpacity
-                  onPress={() =>
-                    setEditTarget(null)
-                  }
-                >
-                  <X
-                    size={24}
-                    color="#333"
-                  />
+                <TouchableOpacity onPress={() => setEditTarget(null)}>
+                  <X size={24} color="#333" />
                 </TouchableOpacity>
               </View>
 
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-              >
+              <ScrollView keyboardShouldPersistTaps="handled">
                 <Field
                   label="Name"
                   value={editForm.name}
@@ -676,9 +586,7 @@ export default function AdminDashboard({ navigation }) {
                   <Field
                     half
                     label="Total Beds"
-                    value={
-                      editForm.total_beds
-                    }
+                    value={editForm.total_beds}
                     onChange={(v) =>
                       setEditForm({
                         ...editForm,
@@ -693,9 +601,7 @@ export default function AdminDashboard({ navigation }) {
                   <Field
                     half
                     label="Available Beds"
-                    value={
-                      editForm.available_beds
-                    }
+                    value={editForm.available_beds}
                     onChange={(v) =>
                       setEditForm({
                         ...editForm,
@@ -711,20 +617,10 @@ export default function AdminDashboard({ navigation }) {
                   onPress={handleSaveEdit}
                   disabled={saving}
                 >
-                  <Save
-                    size={16}
-                    color="#fff"
-                  />
+                  <Save size={16} color="#fff" />
 
-                  <Text
-                    style={[
-                      styles.buttonText,
-                      { marginLeft: 8 },
-                    ]}
-                  >
-                    {saving
-                      ? "Saving..."
-                      : "Save Changes"}
+                  <Text style={[styles.buttonText, { marginLeft: 8 }]}>
+                    {saving ? "Saving..." : "Save Changes"}
                   </Text>
                 </TouchableOpacity>
 
@@ -748,11 +644,11 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 60,
   },
-headerWrapper: {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-},
+  headerWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",

@@ -1,56 +1,63 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
-  StyleSheet, View, Text, FlatList, Image,
-  TouchableOpacity, TextInput, SafeAreaView, ActivityIndicator
-} from 'react-native';
-import { Search, MapPin, Star } from 'lucide-react-native';
-import * as Location from 'expo-location';
-import API from '../services/api';
-
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  SafeAreaView,
+  ActivityIndicator,
+} from "react-native";
+import { Search, MapPin, Star } from "lucide-react-native";
+import * as Location from "expo-location";
+import API from "../services/api";
+import HospitalAvatar from "../Avatar/InitialsAvatar";
 // Fallback image when hospital has no image
-const FALLBACK_IMG = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400';
+// const FALLBACK_IMG = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400';
+
 
 const HospitalsScreen = () => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [hospitals, setHospitals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userLocation, setUserLocation] = useState(null);
 
   // ── Fetch location then hospitals ──────────────────────
+  // useEffect(() => {
+  //   const init = async () => {
+  //     // Try to get user location (best effort — doesn't block if denied)
+  //     try {
+  //       const { status } = await Location.requestForegroundPermissionsAsync();
+  //       if (status === 'granted') {
+  //         const loc = await Location.getCurrentPositionAsync({
+  //           accuracy: Location.Accuracy.Balanced,
+  //         });
+  //         setUserLocation(loc.coords);
+  //         await fetchHospitals(loc.coords.latitude, loc.coords.longitude);
+  //       } else {
+  //         // No location permission — fetch without coordinates
+  //         await fetchHospitals(null, null);
+  //       }
+  //     } catch {
+  //       await fetchHospitals(null, null);
+  //     }
+  //   };
+  //   init();
+  // }, []);
   useEffect(() => {
-    const init = async () => {
-      // Try to get user location (best effort — doesn't block if denied)
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status === 'granted') {
-          const loc = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          });
-          setUserLocation(loc.coords);
-          await fetchHospitals(loc.coords.latitude, loc.coords.longitude);
-        } else {
-          // No location permission — fetch without coordinates
-          await fetchHospitals(null, null);
-        }
-      } catch {
-        await fetchHospitals(null, null);
-      }
-    };
-    init();
+    fetchHospitals();
   }, []);
-
-  const fetchHospitals = async (lat, lng) => {
+  
+  const fetchHospitals = async () => {
     setLoading(true);
+
     try {
-      let url = '/hospitals/nearby';
-      if (lat && lng) {
-        // Fetch hospitals within 20km; increase radius if you want more results
-        url += `?lat=${lat}&lng=${lng}&radius=20000&limit=30`;
-      }
-      const res = await API.get(url);
-      setHospitals(res.data.hospitals || []);
+      const res = await API.get("/hospitals"); // 👈 THIS is the key change
+      setHospitals(res.data.hospitals || res.data || []);
     } catch (e) {
-      console.log('Failed to load hospitals:', e.response?.data || e.message);
+      console.log("Failed to load hospitals:", e.response?.data || e.message);
     } finally {
       setLoading(false);
     }
@@ -72,27 +79,26 @@ const HospitalsScreen = () => {
 
   // Client-side search filter
   const filtered = hospitals.filter((h) =>
-    h.name.toLowerCase().includes(search.toLowerCase())
+    h.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const renderItem = ({ item }) => {
+    console.log(item.name, item.image_url);
     const distKm =
       userLocation && item.location?.lat && item.location?.lng
         ? getDistanceKm(
             userLocation.latitude,
             userLocation.longitude,
             item.location.lat,
-            item.location.lng
+            item.location.lng,
           )
         : null;
 
     return (
       <TouchableOpacity style={styles.card}>
-        <Image
-          source={{ uri: item.image_url || FALLBACK_IMG }}
-          style={styles.img}
-        />
+        {/* <Image source={{ uri: item.image_url }} style={styles.img} /> */}
         <View style={styles.info}>
+          <HospitalAvatar name={item.name} image_url={item.image_url} size={44} />
           <Text style={styles.name}>{item.name}</Text>
 
           <View style={styles.row}>
@@ -108,14 +114,23 @@ const HospitalsScreen = () => {
               </>
             ) : null}
 
-            <Star size={14} fill="#FFD700" color="#FFD700" />
+            {/* <Star size={14} fill="#FFD700" color="#FFD700" />
             <Text style={styles.sub}>
-              {' '}
+              {" "}
               {item.average_rating > 0
                 ? `${item.average_rating} (${item.total_reviews})`
-                : 'No reviews'}
-            </Text>
+                : "No reviews"}
+            </Text> */}
           </View>
+          <View style={styles.row}>
+        <Star size={14} fill="#FFD700" color="#FFD700" />
+        <Text style={styles.sub}>
+          {item.average_rating > 0
+            ? `${item.average_rating} (${item.total_reviews})`
+            : "No reviews"}
+        </Text>
+      </View>
+
 
           {/* Bed availability badge */}
           <View
@@ -123,21 +138,19 @@ const HospitalsScreen = () => {
               styles.badge,
               {
                 backgroundColor:
-                  item.available_beds === 0
-                    ? '#FFE5E5'
-                    : '#E8F5E9',
+                  item.available_beds === 0 ? "#FFE5E5" : "#E8F5E9",
               },
             ]}
           >
             <Text
               style={{
                 fontSize: 11,
-                fontWeight: '700',
-                color: item.available_beds === 0 ? '#E63946' : '#2D6A4F',
+                fontWeight: "700",
+                color: item.available_beds === 0 ? "#E63946" : "#2D6A4F",
               }}
             >
               {item.available_beds === 0
-                ? '🚨 Full'
+                ? "🚨 Full"
                 : `✅ ${item.available_beds} beds available`}
             </Text>
           </View>
@@ -181,44 +194,44 @@ const HospitalsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC', padding: 16 },
+  container: { flex: 1, backgroundColor: "#F8FAFC", padding: 16 },
   headerTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
   },
   searchBar: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    backgroundColor: "#FFF",
     padding: 12,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
     elevation: 2,
   },
   input: { flex: 1, marginLeft: 10 },
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 15,
     marginBottom: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     elevation: 2,
   },
-  img: { width: '100%', height: 150, backgroundColor: '#EEE' },
+  img: { width: "100%", height: 150, backgroundColor: "#EEE" },
   info: { padding: 15 },
-  name: { fontSize: 16, fontWeight: 'bold' },
-  row: { flexDirection: 'row', alignItems: 'center', marginTop: 5 },
-  sub: { color: '#666', fontSize: 13 },
+  name: { fontSize: 16, fontWeight: "bold" },
+  row: { flexDirection: "row", alignItems: "center", marginTop: 5 },
+  sub: { color: "#666", fontSize: 13 },
   badge: {
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
     marginTop: 8,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
   },
   emptyText: {
-    textAlign: 'center',
-    color: '#999',
+    textAlign: "center",
+    color: "#999",
     marginTop: 60,
     fontSize: 15,
   },

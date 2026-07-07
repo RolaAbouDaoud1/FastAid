@@ -40,7 +40,7 @@ MODEL_PATH   = os.getenv("MODEL_PATH", "model.joblib")
 
 NODE_BACKEND = os.getenv(
     "NODE_BACKEND",
-    "http://192.168.2.114:5000"
+    "http://192.168.10.179:5000"
 )
 
 PORT = int(os.getenv("AI_PORT", 5001))

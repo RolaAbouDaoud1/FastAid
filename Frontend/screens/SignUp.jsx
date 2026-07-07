@@ -46,7 +46,7 @@ export default function SignupScreen({ navigation }) {
         ["accessToken", accessToken],
         ["refreshToken", refreshToken],
         ["user", JSON.stringify(user)],
-        ["role", user.role],           // ← standalone key for TabNavigator
+        ["role", user.role], // ← standalone key for TabNavigator
       ]);
 
       if (user.hospital) {
@@ -72,7 +72,8 @@ export default function SignupScreen({ navigation }) {
       console.log("SIGNUP ERROR:", error.response?.data || error.message);
       Alert.alert(
         "Signup Failed",
-        error.response?.data?.message || "Something went wrong. Please try again."
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -103,10 +104,13 @@ export default function SignupScreen({ navigation }) {
             ]}
             onPress={() => setRole("ambulance_staff")}
           >
-            <Text style={role === "ambulance_staff" ? styles.activeRoleText : null}>
+            <Text
+              style={role === "ambulance_staff" ? styles.activeRoleText : null}
+            >
               🚑 Ambulance
             </Text>
           </TouchableOpacity>
+
         </View>
 
         {/* Full Name */}
@@ -143,7 +147,9 @@ export default function SignupScreen({ navigation }) {
             value={password}
             onChangeText={setPassword}
           />
-          <TouchableOpacity onPress={() => setPasswordVisible(!passwordVisible)}>
+          <TouchableOpacity
+            onPress={() => setPasswordVisible(!passwordVisible)}
+          >
             <Ionicons
               name={passwordVisible ? "eye-outline" : "eye-off-outline"}
               size={20}
@@ -227,10 +233,14 @@ const styles = StyleSheet.create({
   roleButton: {
     borderWidth: 1,
     borderColor: "#ddd",
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     padding: 10,
     borderRadius: 10,
-    width: "47%",
+    width: "50%",
     alignItems: "center",
+    justifyContent: "center",
+    marginRight: 5,
   },
   activeRole: {
     backgroundColor: "#d4f5e9",

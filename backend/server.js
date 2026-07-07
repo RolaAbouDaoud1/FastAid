@@ -12,6 +12,7 @@ import appointmentRoutes from "./routes/appointmentRoutes.js";
 import emergencyRoutes from "./routes/emergencyRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js"; 
 import productRoutes from "./routes/productRoutes.js";
+import tripRoutes from "./routes/trips.js";
 
 
 connectDB();
@@ -29,7 +30,8 @@ app.use("/api/doctors", doctorRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/emergencies", emergencyRoutes);
 app.use("/api/ai",aiRoutes); 
-app.use('/api/products', productRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/trips", tripRoutes);
 
 
 // Health check

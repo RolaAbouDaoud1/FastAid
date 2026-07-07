@@ -12,12 +12,39 @@ const GREEN = '#2D6A4F';
 // ─── Unique image per doctor ───────────────────────────────────────────────────
 // Uses Pravatar (seeded avatars) as default — always the same face per doctor.
 // Falls back to a seeded Unsplash medical portrait if image_url present.
+// const getDoctorImage = (item) => {
+//   if (item.image_url) return { uri: item.image_url };
+//   // Pravatar gives a consistent photo for the same seed/name string
+//   const seed = encodeURIComponent((item._id || item.name || 'doctor').slice(0, 30));
+//   return { uri: `https://i.pravatar.cc/150?u=${seed}` };
+// };
+const DOCTOR_IMAGES = [
+  'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
+  'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400',
+  'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400',
+  'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400',
+  'https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400',
+];
+
 const getDoctorImage = (item) => {
-  if (item.image_url) return { uri: item.image_url };
-  // Pravatar gives a consistent photo for the same seed/name string
-  const seed = encodeURIComponent((item._id || item.name || 'doctor').slice(0, 30));
-  return { uri: `https://i.pravatar.cc/150?u=${seed}` };
+  const index =
+    Math.abs(
+      (item._id || item.name || '')
+        .split('')
+        .reduce((a, c) => a + c.charCodeAt(0), 0)
+    ) % DOCTOR_IMAGES.length;
+
+  return { uri: DOCTOR_IMAGES[index] };
 };
+// const getDoctorImage = (item) => {
+//   if (item.image_url) return { uri: item.image_url };
+
+//   const index =
+//     Math.abs((item._id || item.name || '').split('').reduce((a, c) => a + c.charCodeAt(0), 0)) %
+//     DOCTOR_IMAGES.length;
+
+//   return { uri: DOCTOR_IMAGES[index] };
+// };
 
 // Specialty icon map
 const SPEC_ICON = {
