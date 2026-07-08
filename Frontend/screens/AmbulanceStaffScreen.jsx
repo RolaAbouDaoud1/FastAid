@@ -627,12 +627,6 @@ export default function AmbulanceStaffScreen() {
             )}
           </View>
 
-          <TextInput
-            placeholder="Enter hospital name"
-            value={targetHospital}
-            onChangeText={setTargetHospital}
-            style={styles.input}
-          />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

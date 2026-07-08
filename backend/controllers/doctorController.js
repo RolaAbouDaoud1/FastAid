@@ -44,6 +44,7 @@ export const addDoctor = async (req, res) => {
   }
 };
 
+
 /* ─────────────────────────────────────────────
    PUBLIC: Get all doctors (optional filter by hospital)
 ──────────────────────────────────────────────── */

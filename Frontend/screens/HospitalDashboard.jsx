@@ -87,26 +87,50 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
     Alert.alert("Saved", "Hospital updated successfully");
   };
 
-  const addDoctor = () => {
-    if (!docName || !docSpec) {
-      Alert.alert("Error", "Fill all fields");
-      return;
-    }
-
-   addDoctorToContext({
-      id: Date.now().toString(),
-      name: docName,
-      spec: docSpec,
-      image,
-      rating: 5,
-    });
-
-    setDocName("");
-    setDocSpec("");
-    setImage(null);
-
-    Alert.alert("Success", "Doctor added");
-  };
+ const addDoctor = async () => {
+   if (!docName || !docSpec) {
+     Alert.alert("Error", "Fill all fields");
+     return;
+   }
+ 
+   try {
+     const hospitalId = await AsyncStorage.getItem("hospitalId");
+ 
+     const response = await API.post("/doctors", {
+       name: docName,
+       specialization: docSpec,
+       hospital_id: hospitalId,
+       image_url: image || null,
+       experience_years: 0,
+     });
+ 
+     console.log("Doctor added:", response.data);
+ 
+     // Update local context
+     addDoctorToContext({
+       id: response.data.doctor._id,
+       name: response.data.doctor.name,
+       spec: response.data.doctor.specialization,
+       image: response.data.doctor.image_url,
+       rating: response.data.doctor.rating || 5,
+     });
+ 
+     setDocName("");
+     setDocSpec("");
+     setImage(null);
+ 
+     Alert.alert("Success", "Doctor added successfully");
+ 
+   } catch (error) {
+     console.log(
+       "Add doctor error:",
+       error.response?.data || error.message
+     );
+ 
+     Alert.alert("Error", "Failed to add doctor");
+   }
+ };
+ 
 
   return (
     <ScrollView style={styles.container}>

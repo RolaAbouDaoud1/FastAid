@@ -6,7 +6,7 @@
  * All heavy lifting (model inference, hospital scoring) happens in ai_service.py.
  */
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://192.168.2.114:5001";
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL || "http://192.168.1.21:5001";
 
 // ── Helper: call AI microservice ──────────────────────────────────────────────
 async function callAI(path, method = "GET", body = null) {

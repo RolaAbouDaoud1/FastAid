@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -11,18 +11,18 @@ import {
   Platform,
   ActivityIndicator,
   Linking,
-} from 'react-native';
+} from "react-native";
 
-import { Send, MessageCircle, Star, Bed, Phone } from 'lucide-react-native';
-import * as Location from 'expo-location';
-import { analyzeCase, fetchHospitals } from '../services/medicalAI';
+import { Send, MessageCircle, Star, Bed, Phone } from "lucide-react-native";
+import * as Location from "expo-location";
+import { analyzeCase, fetchHospitals } from "../services/medicalAI";
 
-const GREEN = '#2D6A4F';
+const GREEN = "#2D6A4F";
 
 const URGENCY_STYLE = {
-  CRITICAL: { bg: '#FFE5E5', text: '#E63946', label: '🚨 CRITICAL' },
-  URGENT:   { bg: '#FFF3E0', text: '#FB8500', label: '⚠️ URGENT' },
-  MODERATE: { bg: '#E8F5E9', text: '#2D6A4F', label: '✅ MODERATE' },
+  CRITICAL: { bg: "#FFE5E5", text: "#E63946", label: "🚨 CRITICAL" },
+  URGENT: { bg: "#FFF3E0", text: "#FB8500", label: "⚠️ URGENT" },
+  MODERATE: { bg: "#E8F5E9", text: "#2D6A4F", label: "✅ MODERATE" },
 };
 
 const HospitalCard = ({ item, index }) => (
@@ -34,7 +34,7 @@ const HospitalCard = ({ item, index }) => (
     <View style={styles.hospInfo}>
       <Text style={styles.hospName}>{item.name}</Text>
       <Text style={styles.hospLocation}>
-        📍 {item.location_name || item.address || 'Lebanon'}
+        📍 {item.location_name || item.address || "Lebanon"}
       </Text>
 
       <View style={styles.hospStats}>
@@ -47,7 +47,7 @@ const HospitalCard = ({ item, index }) => (
 
         <View style={styles.stat}>
           <Bed size={12} color={GREEN} />
-          <Text style={styles.statText}>{item.available_beds ?? '?'} beds</Text>
+          <Text style={styles.statText}>{item.available_beds ?? "?"} beds</Text>
         </View>
 
         {item.phone && (
@@ -65,12 +65,12 @@ const HospitalCard = ({ item, index }) => (
 );
 
 export default function AIHelpScreen() {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([
     {
       id: 1,
-      sender: 'ai',
-      text: 'Hello! Describe the medical situation and I will help you.',
+      sender: "ai",
+      text: "Hello! Describe the medical situation and I will help you.",
     },
   ]);
 
@@ -82,7 +82,7 @@ export default function AIHelpScreen() {
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
+      if (status === "granted") {
         const loc = await Location.getCurrentPositionAsync({});
         setUserLocation(loc.coords);
       }
@@ -90,7 +90,7 @@ export default function AIHelpScreen() {
   }, []);
 
   const addMessage = (msg) => {
-    setMessages(prev => [...prev, { id: Date.now(), ...msg }]);
+    setMessages((prev) => [...prev, { id: Date.now(), ...msg }]);
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
   };
 
@@ -98,18 +98,19 @@ export default function AIHelpScreen() {
     if (!message.trim() || loading) return;
 
     const text = message;
-    setMessage('');
+    setMessage("");
 
-    addMessage({ sender: 'user', text });
+    addMessage({ sender: "user", text });
     setLoading(true);
 
     try {
       const analysis = await analyzeCase(text, userLocation);
 
       addMessage({
-        sender: 'ai',
+        sender: "ai",
         text: `${analysis.assessment}\n\n${analysis.advice}`,
         symptom: analysis.symptom,
+        disease: analysis.disease,
         specialty: analysis.specialty,
       });
 
@@ -121,14 +122,13 @@ export default function AIHelpScreen() {
 
       if (hospitals.length) {
         addMessage({
-          sender: 'ai',
+          sender: "ai",
           text: `Hospitals for ${analysis.specialty}:`,
           recommendations: hospitals,
         });
       }
-
     } catch (err) {
-      addMessage({ sender: 'ai', text: 'Error occurred.' });
+      addMessage({ sender: "ai", text: "Error occurred." });
     }
 
     setLoading(false);
@@ -138,10 +138,9 @@ export default function AIHelpScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={90}
       >
-
         <ScrollView
           ref={scrollRef}
           keyboardShouldPersistTaps="handled"
@@ -153,38 +152,48 @@ export default function AIHelpScreen() {
               style={{
                 padding: 10,
                 margin: 10,
-                backgroundColor: msg.sender === 'ai' ? '#eee' : GREEN,
+                backgroundColor: msg.sender === "ai" ? "#eee" : GREEN,
                 borderRadius: 10,
-                alignSelf: msg.sender === 'ai' ? 'flex-start' : 'flex-end',
+                alignSelf: msg.sender === "ai" ? "flex-start" : "flex-end",
               }}
             >
-              <Text style={{ color: msg.sender === 'ai' ? '#000' : '#fff' }}>
-
+              <Text style={{ color: msg.sender === "ai" ? "#000" : "#fff" }}>
                 {msg.symptom ? (
                   <>
+                    {msg.disease && (
+                      <>
+                        <Text>
+                          Disease:{" "}
+                          <Text style={{ color: "red", fontWeight: "bold" }}>
+                            {msg.disease}
+                          </Text>
+                        </Text>
+
+                        {"\n"}
+                      </>
+                    )}
                     <Text>
-                      Symptom:{' '}
-                      <Text style={{ color: 'green', fontWeight: 'bold' }}>
+                      Symptom:{" "}
+                      <Text style={{ color: "green", fontWeight: "bold" }}>
                         {msg.symptom}
                       </Text>
                     </Text>
 
-                    {'\n'}
+                    {"\n"}
 
                     <Text>
-                      Specialty:{' '}
-                      <Text style={{ color: '#2D6A4F', fontWeight: 'bold' }}>
+                      Specialty:{" "}
+                      <Text style={{ color: "#2D6A4F", fontWeight: "bold" }}>
                         {msg.specialty}
                       </Text>
                     </Text>
 
-                    {'\n\n'}
+                    {"\n\n"}
                     {msg.text}
                   </>
                 ) : (
                   msg.text
                 )}
-
               </Text>
 
               {msg.recommendations?.map((item, i) => (
@@ -193,9 +202,7 @@ export default function AIHelpScreen() {
             </View>
           ))}
 
-          {loading && (
-            <ActivityIndicator size="small" color={GREEN} />
-          )}
+          {loading && <ActivityIndicator size="small" color={GREEN} />}
         </ScrollView>
 
         <View style={styles.inputRow}>
@@ -210,22 +217,21 @@ export default function AIHelpScreen() {
             <Send color="#fff" size={18} />
           </TouchableOpacity>
         </View>
-
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F8FAFC' },
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
   inputRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     padding: 10,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   input: {
     flex: 1,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
     borderRadius: 10,
     padding: 10,
   },
@@ -236,7 +242,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   hospCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 10,
     marginTop: 10,
     borderRadius: 10,
@@ -246,26 +252,24 @@ const styles = StyleSheet.create({
     height: 25,
     borderRadius: 12,
     backgroundColor: GREEN,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  hospRankText: { color: '#fff' },
-  hospName: { fontWeight: 'bold' },
-  hospLocation: { fontSize: 12, color: '#777' },
-  hospStats: { flexDirection: 'row', marginTop: 5, gap: 10 },
-  stat: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  hospRankText: { color: "#fff" },
+  hospName: { fontWeight: "bold" },
+  hospLocation: { fontSize: 12, color: "#777" },
+  hospStats: { flexDirection: "row", marginTop: 5, gap: 10 },
+  stat: { flexDirection: "row", alignItems: "center", gap: 5 },
   statText: { fontSize: 12 },
   callBtn: {
-    backgroundColor: '#E63946',
+    backgroundColor: "#E63946",
     padding: 5,
     borderRadius: 5,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
-  callBtnText: { color: '#fff', marginLeft: 5 },
+  callBtnText: { color: "#fff", marginLeft: 5 },
 });
-
-
 
 // import React, { useState, useRef, useEffect } from 'react';
 // import {
