@@ -289,9 +289,10 @@ export default function AmbulanceStaffScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  keyboardVerticalOffset={90}
+  style={{ flex: 1 }}
+>
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.header}>Ambulance Dashboard</Text>
 
@@ -310,7 +311,7 @@ export default function AmbulanceStaffScreen() {
 
               <TouchableOpacity
                 style={styles.button}
-                onPress={() => navigation.navigate("AIHelpScreen")}
+                onPress={() => navigation.navigate("AIHelp")}
               >
                 <Text style={styles.aibuttonText}>Try AI Prediction</Text>
               </TouchableOpacity>

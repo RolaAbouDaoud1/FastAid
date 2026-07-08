@@ -12,7 +12,7 @@ import { Platform } from "react-native";
 //      Run  ipconfig  (Windows) or  ifconfig  (Mac/Linux)
 //      and look for the IPv4 address of your WiFi adapter
 // ─────────────────────────────────────────────────────────────
-const WIFI_IP = "192.168.1.21"; 
+const WIFI_IP = "192.168.2.114"; 
 
 const getBaseURL = () => {
   if (Platform.OS === "android" && !__DEV__) return `http://${WIFI_IP}:5000/api`;

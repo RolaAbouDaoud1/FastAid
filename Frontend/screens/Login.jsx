@@ -47,11 +47,11 @@ export default function LoginScreen({ navigation }) {
       if (role === "visitor") {
         navigation.replace("Main");
       } else if (role === "ambulance_staff") {
-        navigation.replace("AmbulanceDashboard");
+        navigation.replace("Main");
       } else if (role === "hospital") {
-        navigation.replace("hospitalDashboard");
+        navigation.replace("Main");
       } else if (role === "admin") {
-        navigation.replace("AdminDashboard");
+        navigation.replace("Main");
       } else {
         Alert.alert("Error", "Unknown role: " + role);
       }
