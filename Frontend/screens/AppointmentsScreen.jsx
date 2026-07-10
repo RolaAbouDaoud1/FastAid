@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 import { Clock, Calendar, Plus, X } from 'lucide-react-native';
 import API from '../services/api';
+import DateTimePicker from '@react-native-community/datetimepicker';
+
 
 const STATUS_COLORS = {
   Confirmed: { bg: '#E8F5E9', text: '#2D6A4F' },
@@ -22,8 +24,25 @@ const AppointmentsScreen = ({ route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [booking, setBooking] = useState(false);
   const [date, setDate] = useState('');
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [time, setTime] = useState('');
+  const [showTimePicker, setShowTimePicker] = useState(false);
   const [notes, setNotes] = useState('');
+  const availableTimes = [
+  "09:00 AM",
+  "10:00 AM",
+  "11:00 AM",
+  "12:00 PM",
+  "01:00 PM",
+  "02:00 PM",
+  "03:00 PM",
+  "04:00 PM",
+  "05:00 PM",
+  "06:00 PM",
+  "07:00 PM",
+  "08:00 PM",
+];
 
   // If navigated from DoctorsScreen a doctor object is passed as route param
   const preselectedDoctor = route?.params?.selectedDoctor || null;
@@ -56,6 +75,17 @@ const AppointmentsScreen = ({ route }) => {
       setModalVisible(true);
     }
   }, [route?.params?.selectedDoctor]);
+
+  const handleDateChange = (event, selected) => {
+  setShowDatePicker(false);
+
+  if (selected) {
+    setSelectedDate(selected);
+
+    const formattedDate = selected.toISOString().split('T')[0];
+    setDate(formattedDate);
+  }
+};
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -190,11 +220,8 @@ const AppointmentsScreen = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleRow}>
-        <Text style={styles.title}>My Appointments</Text>
-        <TouchableOpacity style={styles.addBtn} onPress={openNewBookingModal}>
-          <Plus size={20} color="#FFF" />
-        </TouchableOpacity>
-      </View>
+      <Text style={styles.title}>My Appointments</Text>
+    </View>
 
       {loading ? (
         <ActivityIndicator size="large" color="#2D6A4F" style={{ marginTop: 60 }} />
@@ -217,7 +244,6 @@ const AppointmentsScreen = ({ route }) => {
               <Text style={styles.modalTitle}>Book Appointment</Text>
 
               {/* Pre-filled doctor info (navigated from DoctorsScreen) */}
-              {preselectedDoctor ? (
                 <View style={styles.prefilledBox}>
                   <Text style={styles.prefilledLabel}>Doctor</Text>
                   <Text style={styles.prefilledValue}>{preselectedDoctor.name}</Text>
@@ -228,46 +254,63 @@ const AppointmentsScreen = ({ route }) => {
                     </Text>
                   )}
                 </View>
-              ) : (
-                <>
-                  <Text style={styles.inputLabel}>Doctor ID *</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Paste the doctor's ID"
-                    value={doctorId}
-                    onChangeText={setDoctorId}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-
-                  <Text style={styles.inputLabel}>Hospital ID *</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Paste the hospital's ID"
-                    value={hospitalId}
-                    onChangeText={setHospitalId}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                  />
-                </>
-              )}
+             
 
               <Text style={styles.inputLabel}>Date * (YYYY-MM-DD)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g. 2026-11-02"
-                value={date}
-                onChangeText={setDate}
-                keyboardType="numbers-and-punctuation"
+              <TouchableOpacity
+              style={styles.input}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Text style={{ color: date ? '#000' : '#999' }}>
+                {date || 'Select appointment date'}
+              </Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="calendar"
+                accentColor="#2D6A4F"
+                minimumDate={new Date()}
+                onChange={handleDateChange}
               />
+            )}
 
               <Text style={styles.inputLabel}>Time * (e.g. 10:30 AM)</Text>
-              <TextInput
+              <TouchableOpacity
                 style={styles.input}
-                placeholder="e.g. 10:30 AM"
-                value={time}
-                onChangeText={setTime}
-              />
+                onPress={() => setShowTimePicker(!showTimePicker)}
+              >
+                <Text style={{color: time ? '#000' : '#999'}}>
+                  {time || "🕒 Select appointment time"}
+                </Text>
+              </TouchableOpacity>
+              {showTimePicker && (
+  <View style={styles.timeContainer}>
+    {availableTimes.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.timeButton,
+                time === item && styles.selectedTime
+              ]}
+              onPress={() => {
+                setTime(item);
+                setShowTimePicker(false);
+              }}
+            >
+              <Text
+                style={[
+                  styles.timeText,
+                  time === item && styles.selectedTimeText
+                ]}
+              >
+                🕒 {item}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
               <Text style={styles.inputLabel}>Notes (optional)</Text>
               <TextInput
@@ -383,6 +426,34 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     backgroundColor: '#FAFAFA',
   },
+  timeContainer: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  justifyContent: 'space-between',
+  marginTop: 10,
+},
+
+timeButton: {
+  width: '48%',
+  padding: 15,
+  borderRadius: 15,
+  backgroundColor: '#F1F8F5',
+  marginBottom: 12,
+  alignItems: 'center',
+},
+
+selectedTime: {
+  backgroundColor: '#2D6A4F',
+},
+
+timeText: {
+  color: '#2D6A4F',
+  fontWeight: '600',
+},
+
+selectedTimeText: {
+  color: '#FFF',
+},
   bookBtn: {
     backgroundColor: '#2D6A4F',
     padding: 16,

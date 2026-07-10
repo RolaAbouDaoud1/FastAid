@@ -33,7 +33,7 @@ const PharmacyScreen = () => {
     setError(null);
     try {
       const res = await API.get("/products");
-
+      console.log("Products:", JSON.stringify(res.data, null, 2));
       if (!res.data.success) {
         throw new Error(res.data.message);
       }

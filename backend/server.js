@@ -13,6 +13,7 @@ import emergencyRoutes from "./routes/emergencyRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js"; 
 import productRoutes from "./routes/productRoutes.js";
 import tripRoutes from "./routes/trips.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 
 connectDB();
@@ -32,7 +33,7 @@ app.use("/api/emergencies", emergencyRoutes);
 app.use("/api/ai",aiRoutes); 
 app.use("/api/products", productRoutes);
 app.use("/api/trips", tripRoutes);
-
+app.use("/api/reviews", reviewRoutes);
 
 // Health check
 app.get("/api/health", (req, res) => {

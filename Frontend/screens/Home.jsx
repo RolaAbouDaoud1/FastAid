@@ -24,6 +24,7 @@ import {
 } from "lucide-react-native";
 import * as Location from "expo-location";
 import API from "../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // const FALLBACK_HOSPITAL_IMG = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=500';
 const HOSPITAL_IMAGES = [
@@ -33,6 +34,7 @@ const HOSPITAL_IMAGES = [
   "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=500",
   "https://images.unsplash.com/photo-1564732005956-20420ebdab60?w=500",
 ];
+
 
 const getHospitalImage = (hospital) => {
   if (hospital.image_url) {
@@ -104,7 +106,22 @@ const Home = () => {
   const [doctors, setDoctors] = useState([]);
   const [loadingHospitals, setLoadingHospitals] = useState(true);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [reviewText, setReviewText] = useState("");
+const [rating, setRating] = useState(0);
+const [reviews, setReviews] = useState(STATIC_REVIEWS);
+const [userRole, setUserRole] = useState(null);
 
+  useEffect(() => {
+  const getRole = async () => {
+   const role = await AsyncStorage.getItem("role");
+
+console.log("USER ROLE FROM STORAGE:", role);
+
+setUserRole(role);
+  };
+
+  getRole();
+}, []);
   // ── Fetch nearby hospitals on mount ─────────────────────
   useEffect(() => {
     const loadData = async () => {
@@ -159,19 +176,39 @@ const Home = () => {
       d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       d.specialization?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
+const submitReview = async () => {
+  if (!reviewText || rating === 0) {
+    alert("Please add a rating and review");
+    return;
+  }
 
+  try {
+    await API.post("/reviews", {
+      rating,
+      comment: reviewText,
+    });
+
+    setReviews([
+      ...reviews,
+      {
+        id: Date.now(),
+        user: "You",
+        rating,
+        comment: reviewText,
+      },
+    ]);
+
+    setReviewText("");
+    setRating(0);
+
+    alert("Review submitted successfully");
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+  }
+};
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <HospitalIcon color="#4A90E2" size={32} />
-        </View>
-        <TouchableOpacity style={styles.bellBtn}>
-          <View style={styles.notificationBadge} />
-          <Bell color="#333" size={28} />
-        </TouchableOpacity>
-      </View> */}
+
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -305,9 +342,52 @@ const Home = () => {
         )}
 
         {/* Reviews (static) */}
+        {userRole === "visitor" && (
+  <View style={styles.writeReviewCard}>
+
+    <Text style={styles.writeTitle}>
+      Share your experience ⭐
+    </Text>
+
+    <View style={styles.ratingRow}>
+      {[1,2,3,4,5].map((star)=>(
+        <TouchableOpacity
+          key={star}
+          onPress={() => setRating(star)}
+        >
+          <Star
+            size={28}
+            color="#FFD700"
+            fill={star <= rating ? "#FFD700" : "transparent"}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+
+
+    <TextInput
+      style={styles.reviewInput}
+      placeholder="Write your review..."
+      multiline
+      value={reviewText}
+      onChangeText={setReviewText}
+    />
+
+
+    <TouchableOpacity
+      style={styles.submitReviewBtn}
+      onPress={submitReview}
+    >
+      <Text style={styles.submitText}>
+        Submit Review
+      </Text>
+    </TouchableOpacity>
+
+  </View>
+)}
         <Text style={styles.sectionTitleFixed}>Top Patient Reviews</Text>
         <View style={styles.reviewsWrapper}>
-          {STATIC_REVIEWS.map((rev) => (
+          {reviews.map((rev) => (
             <View key={rev.id} style={styles.reviewCard}>
               <View style={styles.revHeader}>
                 <Text style={styles.revUser}>{rev.user}</Text>
@@ -505,9 +585,52 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 8,
   },
+  writeReviewCard:{
+  backgroundColor:"#FFF",
+  marginHorizontal:16,
+  padding:18,
+  borderRadius:22,
+  marginTop:20,
+  elevation:3,
+},
+
+writeTitle:{
+  fontSize:17,
+  fontWeight:"bold",
+  marginBottom:15,
+},
+
+ratingRow:{
+  flexDirection:"row",
+  marginBottom:15,
+},
+
+reviewInput:{
+  backgroundColor:"#F8FAFC",
+  borderRadius:15,
+  padding:15,
+  height:100,
+  textAlignVertical:"top",
+  borderWidth:1,
+  borderColor:"#E0E0E0",
+},
+
+submitReviewBtn:{
+  backgroundColor:"#2D6A4F",
+  padding:14,
+  borderRadius:25,
+  alignItems:"center",
+  marginTop:15,
+},
+
+submitText:{
+  color:"#FFF",
+  fontWeight:"bold",
+},
   revUser: { fontWeight: "bold", fontSize: 15 },
   stars: { flexDirection: "row" },
   revComment: { color: "#555", fontSize: 14, lineHeight: 20 },
 });
+
 
 export default Home;

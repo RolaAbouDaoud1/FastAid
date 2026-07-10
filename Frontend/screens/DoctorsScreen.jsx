@@ -98,7 +98,12 @@ const DoctorsScreen = () => {
   );
 
   const handleCall  = (phone) => { if (phone) Linking.openURL(`tel:${phone}`); };
-  const handleBook  = (doctor) => navigation.navigate('Appointments', { selectedDoctor: doctor });
+  const handleBook  = (doctor) => navigation.navigate('Main', {
+  screen: 'Appointments',
+  params: {
+    selectedDoctor: doctor,
+  },
+});
 
   const renderItem = ({ item }) => {
     const icon = getSpecIcon(item.specialization);

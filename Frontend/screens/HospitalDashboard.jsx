@@ -8,6 +8,8 @@ import {
   ScrollView,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -23,6 +25,7 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
   const [docName, setDocName] = useState("");
   const [docSpec, setDocSpec] = useState("");
   const [image, setImage] = useState(null);
+  const [docExperience, setDocExperience] = useState("");
 
   // ── Incoming emergency (session-only, not stored in DB) ──
   const [hospitalId, setHospitalId] = useState(null);
@@ -88,7 +91,7 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
   };
 
  const addDoctor = async () => {
-   if (!docName || !docSpec) {
+   if (!docName || !docSpec || !docExperience) {
      Alert.alert("Error", "Fill all fields");
      return;
    }
@@ -101,7 +104,7 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
        specialization: docSpec,
        hospital_id: hospitalId,
        image_url: image || null,
-       experience_years: 0,
+       experience_years: Number(docExperience),
      });
  
      console.log("Doctor added:", response.data);
@@ -117,6 +120,7 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
  
      setDocName("");
      setDocSpec("");
+     setDocExperience("");
      setImage(null);
  
      Alert.alert("Success", "Doctor added successfully");
@@ -133,7 +137,15 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
  
 
   return (
-    <ScrollView style={styles.container}>
+     <KeyboardAvoidingView
+    style={{ flex: 1 }}
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+  >
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: 60 }}
+      keyboardShouldPersistTaps="handled"
+    >
 
       <Text style={styles.title}>🏥 Hospital Dashboard</Text>
 
@@ -241,6 +253,13 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
           onChangeText={setDocSpec}
           style={styles.input}
         />
+        <TextInput
+          placeholder="Years of Experience"
+          value={docExperience}
+          onChangeText={setDocExperience}
+          keyboardType="numeric"
+          style={styles.input}
+        />
 
         <TouchableOpacity style={styles.btn} onPress={pickImage}>
           <Text style={styles.btnText}>Select Image</Text>
@@ -253,7 +272,8 @@ const { addDoctor: addDoctorToContext } = useContext(DoctorsContext);
         </TouchableOpacity>
       </View>
 
-    </ScrollView>
+          </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
