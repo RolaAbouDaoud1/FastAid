@@ -243,17 +243,23 @@ const AppointmentsScreen = ({ route }) => {
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <Text style={styles.modalTitle}>Book Appointment</Text>
 
-              {/* Pre-filled doctor info (navigated from DoctorsScreen) */}
-                <View style={styles.prefilledBox}>
-                  <Text style={styles.prefilledLabel}>Doctor</Text>
-                  <Text style={styles.prefilledValue}>{preselectedDoctor.name}</Text>
-                  <Text style={styles.prefilledSub}>{preselectedDoctor.specialization}</Text>
-                  {preselectedDoctor?.hospital?.name && (
-                    <Text style={styles.prefilledSub}>
-                      🏥 {preselectedDoctor.hospital.name}
-                    </Text>
-                  )}
-                </View>
+               {preselectedDoctor ? (
+                                <View style={styles.prefilledBox}>
+                                  <Text style={styles.prefilledLabel}>Doctor</Text>
+                                  <Text style={styles.prefilledValue}>
+                                    {preselectedDoctor.name}
+                                  </Text>
+                                  <Text style={styles.prefilledSub}>
+                                    {preselectedDoctor.specialization}
+                                  </Text>
+                
+                                  {preselectedDoctor?.hospital?.name && (
+                                    <Text style={styles.prefilledSub}>
+                                      🏥 {preselectedDoctor.hospital.name}
+                                    </Text>
+                                  )}
+                                </View>
+                              ) : null}
              
 
               <Text style={styles.inputLabel}>Date * (YYYY-MM-DD)</Text>

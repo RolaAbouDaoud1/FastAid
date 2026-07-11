@@ -56,18 +56,7 @@ export default function SignupScreen({ navigation }) {
       Alert.alert("Success", "Account created successfully!");
 
       // Navigate based on role — single call, no duplicate navigation
-      const userRole = user.role;
-      if (userRole === "visitor") {
-        navigation.replace("Main");
-      } else if (userRole === "ambulance_staff") {
-        navigation.replace("AmbulanceDashboard");
-      } else if (userRole === "hospital") {
-        navigation.replace("hospitalDashboard");
-      } else if (userRole === "admin") {
-        navigation.replace("AdminDashboard");
-      } else {
-        navigation.replace("Main");
-      }
+      navigation.replace("Main");
     } catch (error) {
       console.log("SIGNUP ERROR:", error.response?.data || error.message);
       Alert.alert(
