@@ -1,0 +1,12 @@
+# Virtual environment
+venv/
+disease_predictor/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Large dataset
+disease_predictor/Final_Augmented_dataset_Diseases_and_Symptoms.csv
+backend/.env
+.env

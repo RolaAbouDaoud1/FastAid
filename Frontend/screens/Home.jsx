@@ -1,0 +1,636 @@
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  SafeAreaView,
+  ActivityIndicator,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import {
+  Search,
+  Bell,
+  Hospital as HospitalIcon,
+  MapPin,
+  Star,
+  Plus,
+  BriefcaseMedical,
+  MessageCircle,
+  AlertCircle,
+} from "lucide-react-native";
+import * as Location from "expo-location";
+import API from "../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// const FALLBACK_HOSPITAL_IMG = 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?q=80&w=500';
+const HOSPITAL_IMAGES = [
+  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=500",
+  "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=500",
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=500",
+  "https://images.unsplash.com/photo-1538108149393-fbbd81895907?w=500",
+  "https://images.unsplash.com/photo-1564732005956-20420ebdab60?w=500",
+];
+
+
+const getHospitalImage = (hospital) => {
+  if (hospital.image_url) {
+    return { uri: hospital.image_url };
+  }
+
+  const index =
+    Math.abs(
+      (hospital._id || hospital.name || "")
+        .split("")
+        .reduce((a, c) => a + c.charCodeAt(0), 0),
+    ) % HOSPITAL_IMAGES.length;
+
+  return { uri: HOSPITAL_IMAGES[index] };
+};
+// const FALLBACK_DOCTOR_IMG = 'https://i.pravatar.cc/150?u=default';
+const DOCTOR_IMAGES = [
+  "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400",
+  "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400",
+  "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=400",
+  "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400",
+  "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?w=400",
+];
+
+const getDoctorImage = (item) => {
+  const index =
+    Math.abs(
+      (item._id || item.name || '')
+        .split('')
+        .reduce((a, c) => a + c.charCodeAt(0), 0)
+    ) % DOCTOR_IMAGES.length;
+
+  return { uri: DOCTOR_IMAGES[index] };
+};
+
+// Static reviews — these stay hardcoded since reviews come from real users over time
+const STATIC_REVIEWS = [
+  {
+    id: 1,
+    user: "Alex T.",
+    rating: 5,
+    comment: "Dr. Sarah was extremely professional. Seamless experience!",
+  },
+  {
+    id: 2,
+    user: "Maya R.",
+    rating: 4,
+    comment: "Quick response from the emergency feature. Highly recommend.",
+  },
+  {
+    id: 3,
+    user: "Jordan K.",
+    rating: 5,
+    comment: "The AI help gave me great initial guidance before my visit.",
+  },
+  {
+    id: 4,
+    user: "Liam W.",
+    rating: 5,
+    comment: "Cleanest hospital I've visited. 10/10 service.",
+  },
+];
+
+const Home = () => {
+  const navigation = useNavigation();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [hospitals, setHospitals] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [loadingHospitals, setLoadingHospitals] = useState(true);
+  const [loadingDoctors, setLoadingDoctors] = useState(true);
+  const [reviewText, setReviewText] = useState("");
+const [rating, setRating] = useState(0);
+const [reviews, setReviews] = useState(STATIC_REVIEWS);
+const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+  const getRole = async () => {
+   const role = await AsyncStorage.getItem("role");
+
+console.log("USER ROLE FROM STORAGE:", role);
+
+setUserRole(role);
+  };
+
+  getRole();
+}, []);
+  // ── Fetch nearby hospitals on mount ─────────────────────
+  useEffect(() => {
+    const loadData = async () => {
+      // Try to get location
+      let lat = null;
+      let lng = null;
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === "granted") {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          lat = loc.coords.latitude;
+          lng = loc.coords.longitude;
+        }
+      } catch {
+        // location denied — fetch without coords
+      }
+
+      // Fetch hospitals
+      try {
+        let url = "/hospitals/nearby?limit=5";
+        if (lat && lng) url += `&lat=${lat}&lng=${lng}&radius=20000`;
+        const res = await API.get(url);
+        setHospitals(res.data.hospitals || []);
+      } catch (e) {
+        console.log("Hospitals fetch error:", e.message);
+      } finally {
+        setLoadingHospitals(false);
+      }
+
+      // Fetch top-rated doctors
+      try {
+        const res = await API.get("/doctors?limit=5");
+        setDoctors(res.data.doctors || []);
+      } catch (e) {
+        console.log("Doctors fetch error:", e.message);
+      } finally {
+        setLoadingDoctors(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const filteredHospitals = hospitals.filter((h) =>
+    h.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const filteredDoctors = doctors.filter(
+    (d) =>
+      d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      d.specialization?.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+const submitReview = async () => {
+  if (!reviewText || rating === 0) {
+    alert("Please add a rating and review");
+    return;
+  }
+
+  try {
+    await API.post("/reviews", {
+      rating,
+      comment: reviewText,
+    });
+
+    setReviews([
+      ...reviews,
+      {
+        id: Date.now(),
+        user: "You",
+        rating,
+        comment: reviewText,
+      },
+    ]);
+
+    setReviewText("");
+    setRating(0);
+
+    alert("Review submitted successfully");
+  } catch (error) {
+    console.log(error.response?.data || error.message);
+  }
+};
+  return (
+    <SafeAreaView style={styles.container}>
+
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Hero */}
+        <View style={styles.heroCard}>
+          <View style={styles.heroTextContainer}>
+            <Text style={styles.heroTitle}>
+              Find Your Desired Health Solution
+            </Text>
+            <Text style={styles.heroSubtitle}>
+              Fast access to doctors & services
+            </Text>
+          </View>
+          <Text style={styles.starIcon}>✱</Text>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search color="#999" size={20} />
+          <TextInput
+            placeholder="Search doctors, hospitals..."
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
+
+        {/* Categories */}
+        <View style={styles.categoryGrid}>
+          <CategoryItem
+            onPress={() => navigation.navigate("Hospitals")}
+            IconComp={HospitalIcon}
+            color="#2D6A4F"
+            label="Hospitals"
+          />
+          <CategoryItem
+            onPress={() => navigation.navigate("Pharmacy")}
+            IconComp={BriefcaseMedical}
+            color="#FB8500"
+            label="Pharmacy"
+          />
+          <CategoryItem
+            onPress={() => navigation.navigate("AI")}
+            IconComp={MessageCircle}
+            color="#6A4C93"
+            label="AI Help"
+          />
+          <CategoryItem
+            onPress={() => navigation.navigate("Emergency")}
+            IconComp={AlertCircle}
+            color="#E63946"
+            label="Emergency"
+          />
+        </View>
+
+        {/* Nearby Hospitals */}
+        <SectionHeader
+          title="Nearby Hospitals"
+          onSeeAll={() => navigation.navigate("Hospitals")}
+        />
+        {loadingHospitals ? (
+          <ActivityIndicator color="#2D6A4F" style={{ marginVertical: 20 }} />
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalListPadding}
+          >
+            {filteredHospitals.map((h) => (
+              <View key={h._id} style={styles.hospitalCard}>
+                <Image
+                  source={getHospitalImage(h)}
+                  style={styles.hospitalImg}
+                />
+                <View style={styles.cardInfo}>
+                  <Text style={styles.cardTitle} numberOfLines={1}>
+                    {h.name}
+                  </Text>
+                  <View style={styles.distRow}>
+                    <MapPin size={12} color="#E63946" />
+                    <Text style={styles.distText}>
+                      {h.address ? h.address : "View details"}
+                    </Text>
+                  </View>
+                  {h.average_rating > 0 && (
+                    <View style={styles.distRow}>
+                      <Star size={12} fill="#FFD700" color="#FFD700" />
+                      <Text style={styles.distText}> {h.average_rating}</Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            ))}
+            <SeeMoreCard onPress={() => navigation.navigate("Hospitals")} />
+          </ScrollView>
+        )}
+
+        {/* Top Doctors */}
+        <SectionHeader
+          title="Top Doctors"
+          onSeeAll={() => navigation.navigate("DoctorsList")}
+        />
+        {loadingDoctors ? (
+          <ActivityIndicator color="#2D6A4F" style={{ marginVertical: 20 }} />
+        ) : (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalListPadding}
+          >
+            {filteredDoctors.map((doc) => (
+              <View key={doc._id} style={styles.doctorCard}>
+                <Image
+                  // source={{ uri: doc.image_url || FALLBACK_DOCTOR_IMG }}
+                  source={getDoctorImage(doc)}
+                  style={styles.doctorAvatar}
+                />
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {doc.name}
+                </Text>
+                <Text style={styles.cardSubTitle}>{doc.specialization}</Text>
+                <TouchableOpacity style={styles.primaryBtn}>
+                  <Text style={styles.btnText}>Call Now</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            <SeeMoreCard onPress={() => navigation.navigate("DoctorsList")} />
+          </ScrollView>
+        )}
+
+        {/* Reviews (static) */}
+        {userRole === "visitor" && (
+  <View style={styles.writeReviewCard}>
+
+    <Text style={styles.writeTitle}>
+      Share your experience ⭐
+    </Text>
+
+    <View style={styles.ratingRow}>
+      {[1,2,3,4,5].map((star)=>(
+        <TouchableOpacity
+          key={star}
+          onPress={() => setRating(star)}
+        >
+          <Star
+            size={28}
+            color="#FFD700"
+            fill={star <= rating ? "#FFD700" : "transparent"}
+          />
+        </TouchableOpacity>
+      ))}
+    </View>
+
+
+    <TextInput
+      style={styles.reviewInput}
+      placeholder="Write your review..."
+      multiline
+      value={reviewText}
+      onChangeText={setReviewText}
+    />
+
+
+    <TouchableOpacity
+      style={styles.submitReviewBtn}
+      onPress={submitReview}
+    >
+      <Text style={styles.submitText}>
+        Submit Review
+      </Text>
+    </TouchableOpacity>
+
+  </View>
+)}
+        <Text style={styles.sectionTitleFixed}>Top Patient Reviews</Text>
+        <View style={styles.reviewsWrapper}>
+          {reviews.map((rev) => (
+            <View key={rev.id} style={styles.reviewCard}>
+              <View style={styles.revHeader}>
+                <Text style={styles.revUser}>{rev.user}</Text>
+                <View style={styles.stars}>
+                  {[...Array(rev.rating)].map((_, i) => (
+                    <Star key={i} size={14} fill="#FFD700" color="#FFD700" />
+                  ))}
+                </View>
+              </View>
+              <Text style={styles.revComment}>{rev.comment}</Text>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
+
+// ── Sub-components ──────────────────────────────────────────
+const SectionHeader = ({ title, onSeeAll }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    <TouchableOpacity onPress={onSeeAll}>
+      <Text style={styles.seeAll}>See All</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+const CategoryItem = ({ IconComp, color, label, onPress }) => (
+  <TouchableOpacity onPress={onPress} style={styles.catItem}>
+    <View style={styles.catIconWrapper}>
+      <IconComp color={color} size={24} />
+    </View>
+    <Text style={styles.catLabel}>{label}</Text>
+  </TouchableOpacity>
+);
+
+const SeeMoreCard = ({ onPress }) => (
+  <TouchableOpacity style={styles.seeMoreCard} onPress={onPress}>
+    <View style={styles.plusCircle}>
+      <Plus color="#2D6A4F" size={28} />
+    </View>
+    <Text style={styles.seeMoreText}>Full List</Text>
+  </TouchableOpacity>
+);
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#F8FAFC" },
+  scrollContent: { paddingBottom: 100 },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 25,
+    alignItems: "center",
+  },
+  notificationBadge: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#E63946",
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    zIndex: 2,
+    borderWidth: 1.5,
+    borderColor: "#F8FAFC",
+  },
+  heroCard: {
+    backgroundColor: "#FFF",
+    margin: 16,
+    padding: 24,
+    borderRadius: 24,
+    flexDirection: "row",
+    alignItems: "center",
+    elevation: 4,
+  },
+  heroTextContainer: { flex: 1 },
+  heroTitle: { fontSize: 20, fontWeight: "bold", color: "#333" },
+  heroSubtitle: { fontSize: 13, color: "#777", marginTop: 6 },
+  starIcon: { fontSize: 36, color: "#E63946", marginLeft: 10 },
+  searchContainer: {
+    backgroundColor: "#FFF",
+    marginHorizontal: 16,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    height: 54,
+    elevation: 2,
+  },
+  searchInput: { flex: 1, marginLeft: 12, fontSize: 15 },
+  categoryGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+  },
+  catItem: { width: "22%", alignItems: "center" },
+  catIconWrapper: {
+    backgroundColor: "#FFF",
+    padding: 14,
+    borderRadius: 18,
+    elevation: 3,
+  },
+  catLabel: { fontSize: 11, marginTop: 8, fontWeight: "600", color: "#444" },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginTop: 10,
+    marginBottom: 12,
+  },
+  sectionTitle: { fontSize: 18, fontWeight: "bold" },
+  seeAll: { color: "#2D6A4F", fontSize: 13, fontWeight: "700" },
+  horizontalListPadding: {
+    paddingLeft: 16,
+    paddingRight: 8,
+    paddingBottom: 10,
+  },
+  hospitalCard: {
+    backgroundColor: "#FFF",
+    width: 230,
+    borderRadius: 22,
+    marginRight: 16,
+    elevation: 3,
+    overflow: "hidden",
+  },
+  hospitalImg: { width: "100%", height: 120, backgroundColor: "#EEE" },
+  cardInfo: { padding: 12 },
+  doctorCard: {
+    backgroundColor: "#FFF",
+    width: 180,
+    borderRadius: 22,
+    marginRight: 16,
+    elevation: 3,
+    alignItems: "center",
+    padding: 18,
+  },
+  doctorAvatar: { width: 75, height: 75, borderRadius: 38, marginBottom: 12 },
+  cardTitle: { fontWeight: "bold", fontSize: 15 },
+  cardSubTitle: { color: "#888", fontSize: 13, marginBottom: 14 },
+  distRow: { flexDirection: "row", alignItems: "center", marginTop: 5 },
+  distText: { fontSize: 12, color: "#666", marginLeft: 5 },
+  primaryBtn: {
+    backgroundColor: "#FF5A5F",
+    width: "100%",
+    paddingVertical: 10,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  btnText: { color: "#FFF", fontWeight: "bold", fontSize: 13 },
+  seeMoreCard: {
+    backgroundColor: "#FFF",
+    width: 150,
+    borderRadius: 22,
+    marginRight: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 2,
+    borderStyle: "dashed",
+    borderWidth: 1.5,
+    borderColor: "#CCC",
+    minHeight: 160,
+  },
+  plusCircle: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  seeMoreText: { color: "#2D6A4F", fontWeight: "bold" },
+  sectionTitleFixed: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginHorizontal: 20,
+    marginTop: 30,
+    marginBottom: 15,
+  },
+  reviewsWrapper: { paddingHorizontal: 16 },
+  reviewCard: {
+    backgroundColor: "#FFF",
+    padding: 18,
+    borderRadius: 20,
+    marginBottom: 14,
+    elevation: 2,
+  },
+  revHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 8,
+  },
+  writeReviewCard:{
+  backgroundColor:"#FFF",
+  marginHorizontal:16,
+  padding:18,
+  borderRadius:22,
+  marginTop:20,
+  elevation:3,
+},
+
+writeTitle:{
+  fontSize:17,
+  fontWeight:"bold",
+  marginBottom:15,
+},
+
+ratingRow:{
+  flexDirection:"row",
+  marginBottom:15,
+},
+
+reviewInput:{
+  backgroundColor:"#F8FAFC",
+  borderRadius:15,
+  padding:15,
+  height:100,
+  textAlignVertical:"top",
+  borderWidth:1,
+  borderColor:"#E0E0E0",
+},
+
+submitReviewBtn:{
+  backgroundColor:"#2D6A4F",
+  padding:14,
+  borderRadius:25,
+  alignItems:"center",
+  marginTop:15,
+},
+
+submitText:{
+  color:"#FFF",
+  fontWeight:"bold",
+},
+  revUser: { fontWeight: "bold", fontSize: 15 },
+  stars: { flexDirection: "row" },
+  revComment: { color: "#555", fontSize: 14, lineHeight: 20 },
+});
+
+
+export default Home;
