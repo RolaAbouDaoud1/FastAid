@@ -1,0 +1,8 @@
+# --- copied from .gitignore ---
+node_modules
+.expo
+dist
+.env
+
+# --- exclude the backend entirely ---
+/backend
